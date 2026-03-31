@@ -1,0 +1,26 @@
+# .github/workflows/eps-frontend.yml
+name: CI/CD Pipeline - EPS Frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pipeline:
+    uses: my-banking-app/ci-templates/.github/workflows/vite-front-ci-cd.yml@v1.2.7
+    with:
+      service-name: "EPS Frontend"
+      docker-image-name: "eps-frontend"
+      service-port: "8180"
+      sonar-project-key: "camilobr89_eps-frontend"
+      node-version: "20"
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+      VPS_PRIVATE_KEY: ${{ secrets.VPS_PRIVATE_KEY }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
