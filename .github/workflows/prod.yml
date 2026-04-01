@@ -9,7 +9,7 @@ on:
 
 jobs:
   pipeline:
-    uses: my-banking-app/ci-templates/.github/workflows/vite-front-ci-cd.yml@v1.2.8
+    uses: my-banking-app/ci-templates/.github/workflows/vite-front-ci-cd.yml@v1.2.9
     with:
       service-name: "EPS Frontend"
       docker-image-name: "eps-frontend"
