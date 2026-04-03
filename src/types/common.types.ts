@@ -1,13 +1,9 @@
 export interface PaginatedResponse<T> {
-  data: T[]
-  meta: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-    hasNextPage: boolean
-    hasPreviousPage: boolean
-  }
+  items: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
 }
 
 export interface PaginationParams {

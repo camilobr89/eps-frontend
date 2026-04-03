@@ -15,10 +15,10 @@ vi.mock('@/services/auth.service', () => ({
 const mockUser = {
   id: '1',
   email: 'test@test.com',
-  full_name: 'Test User',
-  is_active: true,
-  email_notifications: true,
-  created_at: '2026-01-01T00:00:00Z',
+  fullName: 'Test User',
+  isActive: true,
+  emailNotifications: true,
+  createdAt: '2026-01-01T00:00:00Z',
 }
 
 function resetStore() {
@@ -87,13 +87,13 @@ describe('auth.store', () => {
       await useAuthStore.getState().register({
         email: 'test@test.com',
         password: 'password',
-        full_name: 'Test User',
+        fullName: 'Test User',
       })
 
       expect(authService.register).toHaveBeenCalledWith({
         email: 'test@test.com',
         password: 'password',
-        full_name: 'Test User',
+        fullName: 'Test User',
       })
       expect(authService.login).toHaveBeenCalledWith({
         email: 'test@test.com',

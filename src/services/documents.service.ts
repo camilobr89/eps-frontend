@@ -2,17 +2,20 @@ import api from './api'
 
 export interface DocumentUploadResponse {
   id: string
-  file_name: string
-  file_url: string
-  file_type: string
-  file_size_bytes: number
-  ocr_status: string
-  uploaded_at: string
+  fileName: string
+  fileSize: number
+  mimeType: string
+  authorizationId: string
+  ocrStatus: string
+  createdAt: string
 }
 
 export interface OcrStatusResponse {
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  errorMessage?: string
+  id: string
+  ocrStatus: 'pending' | 'processing' | 'completed' | 'failed'
+  ocrText: string | null
+  ocrCompletedAt: string | null
+  ocrError: string | null
 }
 
 export const documentsService = {

@@ -24,5 +24,6 @@ dist-ssr
 *.sw?
 
 *-eps.md
+api-spec.json
 
 coverage/

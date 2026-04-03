@@ -6,33 +6,31 @@ export type AppointmentStatus =
   | 'confirmed'
   | 'completed'
   | 'cancelled'
-  | 'no_show'
 
 export interface Appointment {
   id: string
-  family_member_id: string
-  authorization_id: string | null
-  authorization_service_id: string | null
-  appointment_date: string
+  familyMemberId: string
+  authorizationId: string | null
+  authorizationServiceId: string | null
+  appointmentDate: string
   location: string | null
-  doctor_name: string | null
+  doctorName: string | null
   specialty: string | null
   notes: string | null
   status: AppointmentStatus
-  reminder_sent: boolean
   authorization?: Authorization
-  family_member?: FamilyMember
-  created_at: string
-  updated_at: string
+  familyMember?: FamilyMember
+  createdAt: string
+  updatedAt: string
 }
 
 export interface CreateAppointmentRequest {
-  family_member_id: string
-  authorization_id?: string
-  authorization_service_id?: string
-  appointment_date: string
+  familyMemberId: string
+  authorizationId?: string
+  authorizationServiceId?: string
+  appointmentDate: string
   location?: string
-  doctor_name?: string
+  doctorName?: string
   specialty?: string
   notes?: string
 }
