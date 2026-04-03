@@ -27,3 +27,8 @@ dist-ssr
 api-spec.json
 
 coverage/
+
+# Environment variables
+.env
+.env.local
+.env*.local
