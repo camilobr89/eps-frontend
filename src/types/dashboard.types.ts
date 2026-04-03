@@ -1,38 +1,22 @@
-import type { Appointment } from './appointment.types'
-import type { Authorization } from './authorization.types'
-
-export interface DashboardFamilyMember {
+export interface ExpiringAuthorization {
   id: string
-  name: string
-  epsName: string
-  pendingCount: number
-  nextAppointment: string | null
+  requestNumber: string
+  expirationDate: string
+  daysLeft: number
 }
 
 export interface DashboardSummary {
-  urgent: {
-    count: number
-    items: Authorization[]
-  }
-  expiringSoon: {
-    count: number
-    items: Authorization[]
-  }
-  pendingToSchedule: {
-    count: number
-    items: Authorization[]
-  }
-  upcomingAppointments: {
-    count: number
-    items: Appointment[]
-  }
-  familyMembers: DashboardFamilyMember[]
+  totalAuthorizations: number
+  pendingAuthorizations: number
+  upcomingAppointments: number
+  unreadNotifications: number
+  expiringAuthorizations: ExpiringAuthorization[]
 }
 
 export interface TimelineEvent {
   type: 'appointment' | 'expiration'
-  date: string
+  title: string
   description: string
+  date: string
   entityId: string
-  familyMemberName: string
 }

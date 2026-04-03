@@ -6,7 +6,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string
   password: string
-  full_name: string
+  fullName: string
 }
 
 export interface AuthResponse {
@@ -16,8 +16,8 @@ export interface AuthResponse {
 export interface User {
   id: string
   email: string
-  full_name: string
-  is_active: boolean
-  email_notifications: boolean
-  created_at: string
+  fullName: string
+  isActive: boolean
+  emailNotifications: boolean
+  createdAt: string
 }

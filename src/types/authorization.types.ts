@@ -11,84 +11,84 @@ export type Priority = 'urgente' | 'alta' | 'normal' | 'baja'
 
 export interface AuthorizationService {
   id: string
-  authorization_id: string
-  service_code: string
+  authorizationId: string
+  serviceCode: string
   quantity: number
-  service_name: string
-  service_type: string | null
+  serviceName: string
+  serviceType: string | null
 }
 
 export interface Authorization {
   id: string
-  family_member_id: string
-  eps_provider_id: string | null
-  document_type: string
-  request_number: string | null
-  issuing_date: string | null
-  expiration_date: string | null
-  diagnosis_code: string | null
-  diagnosis_description: string | null
-  patient_location: string | null
-  service_origin: string | null
-  provider_name: string | null
-  provider_nit: string | null
-  provider_code: string | null
-  provider_address: string | null
-  provider_phone: string | null
-  provider_department: string | null
-  provider_city: string | null
-  payment_type: string | null
-  copay_value: number | null
-  copay_percentage: number | null
-  max_value: number | null
-  weeks_contributed: number | null
+  familyMemberId: string
+  epsProviderId: string | null
+  documentType: string
+  requestNumber: string | null
+  issuingDate: string | null
+  expirationDate: string | null
+  diagnosisCode: string | null
+  diagnosisDescription: string | null
+  patientLocation: string | null
+  serviceOrigin: string | null
+  providerName: string | null
+  providerNit: string | null
+  providerCode: string | null
+  providerAddress: string | null
+  providerPhone: string | null
+  providerDepartment: string | null
+  providerCity: string | null
+  paymentType: string | null
+  copayValue: number | null
+  copayPercentage: number | null
+  maxValue: number | null
+  weeksContributed: number | null
   priority: Priority
   status: AuthorizationStatus
-  original_file_url: string | null
-  ocr_raw_text: string | null
-  ocr_confidence: number | null
-  ocr_parser_used: string | null
-  manually_reviewed: boolean
+  originalFileUrl: string | null
+  ocrRawText: string | null
+  ocrConfidence: number | null
+  ocrParserUsed: string | null
+  manuallyReviewed: boolean
   notes: string | null
   services: AuthorizationService[]
-  family_member?: FamilyMember
-  created_at: string
-  updated_at: string
+  familyMember?: FamilyMember
+  createdAt: string
+  updatedAt: string
 }
 
 export interface CreateAuthorizationServiceRequest {
-  service_code: string
+  serviceCode: string
   quantity?: number
-  service_name: string
-  service_type?: string
+  serviceName: string
+  serviceType?: string
 }
 
 export interface CreateAuthorizationRequest {
-  family_member_id: string
-  eps_provider_id?: string
-  document_type: string
-  request_number?: string
-  issuing_date?: string
-  expiration_date?: string
-  diagnosis_code?: string
-  diagnosis_description?: string
-  patient_location?: string
-  service_origin?: string
-  provider_name?: string
-  provider_nit?: string
-  provider_code?: string
-  provider_address?: string
-  provider_phone?: string
-  provider_department?: string
-  provider_city?: string
-  payment_type?: string
-  copay_value?: number
-  copay_percentage?: number
-  max_value?: number
-  weeks_contributed?: number
+  familyMemberId: string
+  epsProviderId?: string
+  documentType: string
+  requestNumber?: string
+  issuingDate?: string
+  expirationDate?: string
+  diagnosisCode?: string
+  diagnosisDescription?: string
+  patientLocation?: string
+  serviceOrigin?: string
+  providerName?: string
+  providerNit?: string
+  providerCode?: string
+  providerAddress?: string
+  providerPhone?: string
+  providerDepartment?: string
+  providerCity?: string
+  paymentType?: string
+  copayValue?: number
+  copayPercentage?: number
+  maxValue?: number
+  weeksContributed?: number
   priority?: Priority
   notes?: string
-  services: CreateAuthorizationServiceRequest[]
+  services?: CreateAuthorizationServiceRequest[]
 }
 
 export type UpdateAuthorizationRequest = Partial<CreateAuthorizationRequest>

@@ -1,8 +1,9 @@
 services:
   eps-frontend:
-    build: .
+    build:
+      context: .
     image: eps-frontend
     ports:
       - "${FRONTEND_PORT:-4173}:4173"
     environment:
-      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000/api}
+      - API_PROXY_TARGET=${API_PROXY_TARGET:-http://host.docker.internal:3000}

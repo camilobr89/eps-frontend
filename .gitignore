@@ -24,5 +24,12 @@ dist-ssr
 *.sw?
 
 *-eps.md
+api-spec.json
 
 coverage/
+
+# Environment variables
+.env
+.env.example
+.env.local
+.env*.local

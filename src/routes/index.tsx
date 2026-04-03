@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { PublicRoute } from '@/components/layout/PublicRoute'
+import { AppLayout } from '@/components/layout/AppLayout'
 
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
@@ -28,18 +29,23 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: '/dashboard', element: <DashboardPage /> },
-      { path: '/family-members', element: <FamilyMembersPage /> },
-      { path: '/family-members/:id', element: <FamilyMemberDetailPage /> },
-      { path: '/authorizations', element: <AuthorizationsPage /> },
-      { path: '/authorizations/new', element: <CreateAuthorizationPage /> },
-      { path: '/authorizations/:id', element: <AuthorizationDetailPage /> },
-      { path: '/appointments', element: <AppointmentsPage /> },
-      { path: '/appointments/new', element: <CreateAppointmentPage /> },
-      { path: '/appointments/:id', element: <AppointmentDetailPage /> },
-      { path: '/notifications', element: <NotificationsPage /> },
-      { path: '/settings', element: <SettingsPage /> },
+      {
+        element: <AppLayout />,
+        children: [
+          { index: true, element: <Navigate to="/dashboard" replace /> },
+          { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/family-members', element: <FamilyMembersPage /> },
+          { path: '/family-members/:id', element: <FamilyMemberDetailPage /> },
+          { path: '/authorizations', element: <AuthorizationsPage /> },
+          { path: '/authorizations/new', element: <CreateAuthorizationPage /> },
+          { path: '/authorizations/:id', element: <AuthorizationDetailPage /> },
+          { path: '/appointments', element: <AppointmentsPage /> },
+          { path: '/appointments/new', element: <CreateAppointmentPage /> },
+          { path: '/appointments/:id', element: <AppointmentDetailPage /> },
+          { path: '/notifications', element: <NotificationsPage /> },
+          { path: '/settings', element: <SettingsPage /> },
+        ],
+      },
     ],
   },
   { path: '*', element: <NotFoundPage /> },
