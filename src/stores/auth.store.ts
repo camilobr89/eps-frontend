@@ -42,6 +42,8 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         try {
           await authService.logout()
+        } catch {
+          // Always clear local state even if server call fails
         } finally {
           set({
             user: null,
