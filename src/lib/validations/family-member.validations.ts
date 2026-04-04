@@ -16,10 +16,9 @@ export const familyMemberSchema = z.object({
   cellphone: z.string().optional(),
   email: z
     .string()
-    .optional()
-    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-      message: 'Ingresa un email válido',
-    }),
+    .email('Ingresa un email válido')
+    .or(z.literal(''))
+    .optional(),
   department: z.string().optional(),
   city: z.string().optional(),
 })
