@@ -8,6 +8,8 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { FamilyMembersPage } from '@/pages/family-members/FamilyMembersPage'
 import { FamilyMemberDetailPage } from '@/pages/family-members/FamilyMemberDetailPage'
+import { CreateFamilyMemberPage } from '@/pages/family-members/CreateFamilyMemberPage'
+import { EditFamilyMemberPage } from '@/pages/family-members/EditFamilyMemberPage'
 import { AuthorizationsPage } from '@/pages/authorizations/AuthorizationsPage'
 import { CreateAuthorizationPage } from '@/pages/authorizations/CreateAuthorizationPage'
 import { AuthorizationDetailPage } from '@/pages/authorizations/AuthorizationDetailPage'
@@ -35,7 +37,9 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/family-members', element: <FamilyMembersPage /> },
+          { path: '/family-members/new', element: <CreateFamilyMemberPage /> },
           { path: '/family-members/:id', element: <FamilyMemberDetailPage /> },
+          { path: '/family-members/:id/edit', element: <EditFamilyMemberPage /> },
           { path: '/authorizations', element: <AuthorizationsPage /> },
           { path: '/authorizations/new', element: <CreateAuthorizationPage /> },
           { path: '/authorizations/:id', element: <AuthorizationDetailPage /> },
