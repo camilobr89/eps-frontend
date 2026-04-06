@@ -21,10 +21,12 @@ import { EditAppointmentPage } from '@/pages/appointments/EditAppointmentPage'
 import { NotificationsPage } from '@/pages/notifications/NotificationsPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { RouteErrorPage } from '@/pages/RouteErrorPage'
 
 export const router = createBrowserRouter([
   {
     element: <PublicRoute />,
+    errorElement: <RouteErrorPage />,
     children: [
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
@@ -32,9 +34,11 @@ export const router = createBrowserRouter([
   },
   {
     element: <ProtectedRoute />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         element: <AppLayout />,
+        errorElement: <RouteErrorPage />,
         children: [
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: '/dashboard', element: <DashboardPage /> },
