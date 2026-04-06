@@ -17,6 +17,7 @@ import { EditAuthorizationPage } from '@/pages/authorizations/EditAuthorizationP
 import { AppointmentsPage } from '@/pages/appointments/AppointmentsPage'
 import { CreateAppointmentPage } from '@/pages/appointments/CreateAppointmentPage'
 import { AppointmentDetailPage } from '@/pages/appointments/AppointmentDetailPage'
+import { EditAppointmentPage } from '@/pages/appointments/EditAppointmentPage'
 import { NotificationsPage } from '@/pages/notifications/NotificationsPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
           { path: '/appointments', element: <AppointmentsPage /> },
           { path: '/appointments/new', element: <CreateAppointmentPage /> },
           { path: '/appointments/:id', element: <AppointmentDetailPage /> },
+          { path: '/appointments/:id/edit', element: <EditAppointmentPage /> },
           { path: '/notifications', element: <NotificationsPage /> },
           { path: '/settings', element: <SettingsPage /> },
         ],
