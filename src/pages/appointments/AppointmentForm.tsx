@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
@@ -44,6 +44,8 @@ export function AppointmentForm({
   onSubmit,
   submitLabel = 'Guardar',
 }: AppointmentFormProps) {
+  const hasInitializedFamilyMember = useRef(false)
+  const hasInitializedAuthorization = useRef(false)
   const { data: familyMembersPage, isLoading: isLoadingFamilyMembers } = useFamilyMembers()
   const familyMembers = familyMembersPage?.data ?? []
 
@@ -89,12 +91,20 @@ export function AppointmentForm({
 
   // Reset authorization and service when family member changes
   useEffect(() => {
+    if (!hasInitializedFamilyMember.current) {
+      hasInitializedFamilyMember.current = true
+      return
+    }
     setValue('authorizationId', '')
     setValue('authorizationServiceId', '')
   }, [familyMemberId, setValue])
 
   // Reset service when authorization changes
   useEffect(() => {
+    if (!hasInitializedAuthorization.current) {
+      hasInitializedAuthorization.current = true
+      return
+    }
     setValue('authorizationServiceId', '')
   }, [authorizationId, setValue])
 
