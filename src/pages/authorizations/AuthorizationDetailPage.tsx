@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -11,9 +11,17 @@ import {
   CreditCard,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
+  CheckCircle2,
+  Clock3,
+  Download,
+  Loader2,
+  UploadCloud,
 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -21,8 +29,17 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { FileUpload } from '@/components/shared/FileUpload'
+import { OcrReviewPanel } from '@/components/shared/OcrReviewPanel'
 import { useAuthorization, useDeleteAuthorization } from '@/hooks/useAuthorizations'
-import type { Priority } from '@/types'
+import {
+  useDocumentDownloadUrl as getDocumentDownloadUrl,
+  useOcrStatus,
+  useUploadDocument,
+} from '@/hooks/useDocuments'
+import type { AuthorizationDocument, Priority } from '@/types'
+import type { DocumentUploadResponse } from '@/services/documents.service'
 
 const PRIORITY_LABELS: Record<Priority, string> = {
   urgente: 'Urgente',
@@ -48,6 +65,65 @@ function formatCurrency(value: number | null | undefined): string {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value)
 }
 
+function formatFileSize(value: number | null | undefined): string {
+  if (value == null) return '—'
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function normalizeDocument(
+  document: Partial<AuthorizationDocument> | DocumentUploadResponse,
+  authorizationId: string,
+): AuthorizationDocument {
+  return {
+    id: document.id ?? crypto.randomUUID(),
+    authorizationId: document.authorizationId ?? authorizationId,
+    fileName: document.fileName ?? 'Documento sin nombre',
+    fileSize: document.fileSize ?? 0,
+    mimeType: document.mimeType ?? null,
+    fileUrl: 'fileUrl' in document ? document.fileUrl ?? null : null,
+    ocrStatus: document.ocrStatus ?? 'pending',
+    ocrError: 'ocrError' in document ? document.ocrError ?? null : null,
+    ocrCompletedAt: 'ocrCompletedAt' in document ? document.ocrCompletedAt ?? null : null,
+    createdAt: document.createdAt ?? new Date().toISOString(),
+    updatedAt: 'updatedAt' in document ? document.updatedAt : undefined,
+  }
+}
+
+function getDocumentStatusMeta(status: AuthorizationDocument['ocrStatus']) {
+  switch (status) {
+    case 'processing':
+      return {
+        label: 'Procesando OCR...',
+        icon: Loader2,
+        className: 'text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-500/15',
+        spin: true,
+      }
+    case 'completed':
+      return {
+        label: 'OCR completado',
+        icon: CheckCircle2,
+        className: 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-500/15',
+        spin: false,
+      }
+    case 'failed':
+      return {
+        label: 'Error en OCR',
+        icon: AlertCircle,
+        className: 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-500/15',
+        spin: false,
+      }
+    default:
+      return {
+        label: 'En cola...',
+        icon: Clock3,
+        className: 'text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-500/15',
+        spin: false,
+      }
+  }
+}
+
 function DetailRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value == null || value === '') return null
   return (
@@ -58,13 +134,95 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
   )
 }
 
+function AuthorizationDocumentItem({
+  authorizationId,
+  document,
+}: {
+  authorizationId: string
+  document: AuthorizationDocument
+}) {
+  const queryClient = useQueryClient()
+  const previousStatusRef = useRef(document.ocrStatus)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const { data: ocrStatus } = useOcrStatus(document.id)
+
+  const currentStatus = ocrStatus?.ocrStatus ?? document.ocrStatus
+  const currentError = ocrStatus?.ocrError ?? document.ocrError
+  const statusMeta = getDocumentStatusMeta(currentStatus)
+  const StatusIcon = statusMeta.icon
+
+  useEffect(() => {
+    if (currentStatus === 'completed' && previousStatusRef.current !== 'completed') {
+      queryClient.invalidateQueries({ queryKey: ['authorizations', authorizationId] })
+      queryClient.invalidateQueries({ queryKey: ['authorizations'] })
+    }
+    previousStatusRef.current = currentStatus
+  }, [authorizationId, currentStatus, queryClient])
+
+  async function handleDownload() {
+    try {
+      setIsDownloading(true)
+      const { url } = await getDocumentDownloadUrl(document.id)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      toast.error('No fue posible obtener la URL de descarga')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border/70 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="truncate font-medium">{document.fileName}</p>
+          <p className="text-sm text-muted-foreground">
+            {formatFileSize(document.fileSize)} · Subido el {formatDate(document.createdAt)}
+          </p>
+          {document.mimeType && (
+            <p className="text-xs text-muted-foreground">{document.mimeType}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${statusMeta.className}`}
+          >
+            <StatusIcon className={`h-3.5 w-3.5 ${statusMeta.spin ? 'animate-spin' : ''}`} />
+            {statusMeta.label}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            disabled={isDownloading}
+          >
+            {isDownloading ? (
+              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-3.5 w-3.5" />
+            )}
+            Descargar
+          </Button>
+        </div>
+      </div>
+      {currentStatus === 'failed' && currentError && (
+        <p className="mt-3 text-sm text-red-600 dark:text-red-400">{currentError}</p>
+      )}
+    </div>
+  )
+}
+
 export function AuthorizationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: auth, isLoading } = useAuthorization(id!)
   const deleteMutation = useDeleteAuthorization()
+  const uploadMutation = useUploadDocument()
   const [showDelete, setShowDelete] = useState(false)
   const [ocrExpanded, setOcrExpanded] = useState(false)
+  const [showUploader, setShowUploader] = useState(false)
+  const [uploadedDocuments, setUploadedDocuments] = useState<AuthorizationDocument[]>([])
 
   async function handleDelete() {
     try {
@@ -74,6 +232,26 @@ export function AuthorizationDetailPage() {
     } catch {
       toast.error('Error al eliminar la autorización')
     }
+  }
+
+  async function handleUpload(file: File, onProgress: (progress: number) => void) {
+    if (!auth) return
+
+    const uploaded = await uploadMutation.mutateAsync({
+      authorizationId: auth.id,
+      file,
+      onUploadProgress: onProgress,
+    })
+
+    setUploadedDocuments((current) => {
+      const next = [normalizeDocument(uploaded, auth.id), ...current]
+      return next.filter(
+        (document, index, array) =>
+          array.findIndex((candidate) => candidate.id === document.id) === index,
+      )
+    })
+    setShowUploader(false)
+    toast.success('Documento subido exitosamente')
   }
 
   if (isLoading) {
@@ -95,6 +273,19 @@ export function AuthorizationDetailPage() {
   const hasPaymentInfo =
     auth.paymentType || auth.copayValue != null || auth.maxValue != null || auth.weeksContributed != null
   const hasOcrInfo = auth.ocrParserUsed || auth.ocrRawText
+  const services = auth.services ?? []
+  const serverDocuments = (auth.documents ?? []).map((document) =>
+    normalizeDocument(document, auth.id),
+  )
+
+  const documents = [...uploadedDocuments, ...serverDocuments].filter(
+    (document, index, array) =>
+      array.findIndex((candidate) => candidate.id === document.id) === index,
+  )
+  const isPendingOcrDraft =
+    auth.documentType === 'pendiente_ocr' &&
+    documents.length > 0 &&
+    !hasOcrInfo
 
   return (
     <div className="space-y-6 p-6">
@@ -240,16 +431,16 @@ export function AuthorizationDetailPage() {
       )}
 
       {/* Servicios */}
-      {auth.services.length > 0 && (
+      {services.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Servicios direccionados ({auth.services.length})
+              Servicios direccionados ({services.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {auth.services.map((svc, idx) => (
+              {services.map((svc, idx) => (
                 <div key={svc.id}>
                   {idx > 0 && <Separator className="mb-3" />}
                   <dl className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -266,6 +457,62 @@ export function AuthorizationDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {isPendingOcrDraft && (
+        <Alert>
+          <AlertDescription>
+            El documento ya fue cargado y esta autorización está siendo completada por OCR.
+            No necesitas volver a subir el archivo. Cuando el procesamiento termine, los datos
+            extraídos aparecerán aquí automáticamente.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Documentos */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <UploadCloud className="h-4 w-4" />
+              Documentos
+            </CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowUploader((current) => !current)}
+            >
+              <UploadCloud className="mr-2 h-4 w-4" />
+              {showUploader ? 'Ocultar upload' : 'Subir documento'}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {showUploader && (
+            <FileUpload
+              onUpload={handleUpload}
+              disabled={uploadMutation.isPending}
+            />
+          )}
+
+          {documents.length === 0 ? (
+            <EmptyState
+              icon={<FileText className="h-12 w-12" />}
+              title="Sin documentos"
+              description="Todavía no hay documentos asociados a esta autorización."
+            />
+          ) : (
+            <div className="space-y-3">
+              {documents.map((document) => (
+                <AuthorizationDocumentItem
+                  key={document.id}
+                  authorizationId={auth.id}
+                  document={document}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* OCR */}
       {hasOcrInfo && (
@@ -311,6 +558,10 @@ export function AuthorizationDetailPage() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {hasOcrInfo && (
+        <OcrReviewPanel authorization={auth} />
       )}
 
       <Separator />
