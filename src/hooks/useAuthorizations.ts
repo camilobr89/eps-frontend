@@ -17,9 +17,22 @@ export function useAuthorizations(filters?: AuthorizationFilters & PaginationPar
 }
 
 export function useAuthorization(id: string) {
+  const queryClient = useQueryClient()
+
   return useQuery({
     queryKey: [AUTHORIZATIONS_KEY, id],
-    queryFn: () => authorizationsService.getById(id),
+    queryFn: async () => {
+      const fetched = await authorizationsService.getById(id)
+      const current = queryClient.getQueryData<typeof fetched>([AUTHORIZATIONS_KEY, id])
+
+      // The backend detail payload may omit associated documents even when they already exist.
+      // Preserve the last known document metadata so the uploaded file remains visible while OCR updates arrive.
+      return {
+        ...current,
+        ...fetched,
+        documents: fetched.documents ?? current?.documents ?? [],
+      }
+    },
     enabled: !!id,
   })
 }

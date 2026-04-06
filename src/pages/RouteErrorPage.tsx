@@ -1,6 +1,6 @@
 import { isRouteErrorResponse, Link, useRouteError } from 'react-router-dom'
 import { AlertTriangle, RefreshCcw } from 'lucide-react'
-import { buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
 
 function getErrorMessage(error: unknown): string {

@@ -156,8 +156,57 @@ describe('useAuthorization', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(result.current.data).toEqual(mockAuthorization)
+    expect(result.current.data).toEqual({
+      ...mockAuthorization,
+      documents: [],
+    })
     expect(authorizationsService.getById).toHaveBeenCalledWith('auth-1')
+  })
+
+  it('should preserve cached documents when the backend detail response omits them', async () => {
+    vi.mocked(authorizationsService.getById).mockResolvedValue({
+      ...mockAuthorization,
+      documents: undefined,
+    })
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+
+    queryClient.setQueryData(['authorizations', 'auth-1'], {
+      ...mockAuthorization,
+      documents: [
+        {
+          id: 'doc-1',
+          authorizationId: 'auth-1',
+          fileName: 'autorizacion.pdf',
+          fileSize: 115688,
+          mimeType: 'application/pdf',
+          fileUrl: 'user/auth/file.pdf',
+          ocrStatus: 'pending',
+          ocrError: null,
+          ocrCompletedAt: null,
+          createdAt: '2026-04-01T00:00:00Z',
+        },
+      ],
+    })
+
+    const localWrapper = ({ children }: { children: React.ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children)
+
+    const { result } = renderHook(() => useAuthorization('auth-1'), { wrapper: localWrapper })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(result.current.data?.documents).toEqual([
+      expect.objectContaining({
+        id: 'doc-1',
+        fileName: 'autorizacion.pdf',
+      }),
+    ])
   })
 
   it('should not fetch when id is empty', () => {

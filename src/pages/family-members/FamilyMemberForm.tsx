@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -76,7 +76,7 @@ export function FamilyMemberForm({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FamilyMemberFormValues>({
     resolver: zodResolver(familyMemberSchema),
@@ -98,10 +98,10 @@ export function FamilyMemberForm({
     },
   })
 
-  const documentType = watch('documentType')
-  const relationship = watch('relationship')
-  const epsProviderId = watch('epsProviderId')
-  const regime = watch('regime')
+  const documentType = useWatch({ control, name: 'documentType' })
+  const relationship = useWatch({ control, name: 'relationship' })
+  const epsProviderId = useWatch({ control, name: 'epsProviderId' })
+  const regime = useWatch({ control, name: 'regime' })
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

@@ -18,6 +18,22 @@ export interface AuthorizationService {
   serviceType: string | null
 }
 
+export type DocumentOcrStatus = 'pending' | 'processing' | 'completed' | 'failed'
+
+export interface AuthorizationDocument {
+  id: string
+  authorizationId: string
+  fileName: string
+  fileSize: number
+  mimeType: string | null
+  fileUrl: string | null
+  ocrStatus: DocumentOcrStatus
+  ocrError: string | null
+  ocrCompletedAt: string | null
+  createdAt: string
+  updatedAt?: string
+}
+
 export interface Authorization {
   id: string
   familyMemberId: string
@@ -51,6 +67,7 @@ export interface Authorization {
   manuallyReviewed: boolean
   notes: string | null
   services: AuthorizationService[]
+  documents?: AuthorizationDocument[]
   familyMember?: FamilyMember
   createdAt: string
   updatedAt: string
@@ -91,7 +108,9 @@ export interface CreateAuthorizationRequest {
   services?: CreateAuthorizationServiceRequest[]
 }
 
-export type UpdateAuthorizationRequest = Partial<CreateAuthorizationRequest>
+export type UpdateAuthorizationRequest = Partial<CreateAuthorizationRequest> & {
+  manuallyReviewed?: boolean
+}
 
 export interface AuthorizationFilters {
   status?: AuthorizationStatus

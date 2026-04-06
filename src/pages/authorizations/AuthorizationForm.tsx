@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useEffect, useMemo } from 'react'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -54,7 +54,7 @@ export function AuthorizationForm({
 }: AuthorizationFormProps) {
   const { data: familyMembersPage, isLoading: isLoadingFamilyMembers } = useFamilyMembers()
   const { data: epsProviders = [] } = useEpsProviders()
-  const familyMembers = familyMembersPage?.data ?? []
+  const familyMembers = useMemo(() => familyMembersPage?.data ?? [], [familyMembersPage?.data])
   const familyMemberOptions = familyMembers.map((member) => ({
     value: member.id,
     label: member.fullName,
@@ -70,7 +70,6 @@ export function AuthorizationForm({
     register,
     handleSubmit,
     setValue,
-    watch,
     control,
     formState: { errors, isSubmitting },
   } = useForm<AuthorizationFormValues>({
@@ -102,10 +101,10 @@ export function AuthorizationForm({
 
   const { fields, append, remove } = useFieldArray({ control, name: 'services' })
 
-  const familyMemberId = watch('familyMemberId')
-  const epsProviderId = watch('epsProviderId')
-  const documentType = watch('documentType')
-  const priority = watch('priority')
+  const familyMemberId = useWatch({ control, name: 'familyMemberId' })
+  const epsProviderId = useWatch({ control, name: 'epsProviderId' })
+  const documentType = useWatch({ control, name: 'documentType' })
+  const priority = useWatch({ control, name: 'priority' })
 
   // Auto-fill EPS when a family member is selected (only if EPS isn't already set)
   useEffect(() => {
