@@ -53,6 +53,24 @@ export function FamilyMemberForm({
   submitLabel = 'Guardar',
 }: FamilyMemberFormProps) {
   const { data: epsProviders = [] } = useEpsProviders()
+  const relationshipOptions = RELATIONSHIPS.map((relationship) => ({
+    value: relationship.value,
+    label: relationship.label,
+  }))
+  const documentTypeOptions = DOCUMENT_TYPES.map((documentType) => ({
+    value: documentType.value,
+    label: documentType.label,
+  }))
+  const epsProviderOptions = epsProviders
+    .filter((provider) => provider.isActive !== false)
+    .map((provider) => ({
+      value: provider.id,
+      label: provider.name,
+    }))
+  const regimeOptions = REGIMES.map((regime) => ({
+    value: regime.value,
+    label: regime.label,
+  }))
 
   const {
     register,
@@ -104,6 +122,7 @@ export function FamilyMemberForm({
         <div className="space-y-2">
           <Label htmlFor="relationship">Relación *</Label>
           <Select
+            items={relationshipOptions}
             value={toSelectValue(relationship)}
             onValueChange={(val) => setValue('relationship', val ?? '', { shouldValidate: true })}
           >
@@ -111,9 +130,9 @@ export function FamilyMemberForm({
               <SelectValue placeholder="Seleccionar relación" />
             </SelectTrigger>
             <SelectContent>
-              {RELATIONSHIPS.map((r) => (
-                <SelectItem key={r.value} value={r.value}>
-                  {r.label}
+              {relationshipOptions.map((relationshipOption) => (
+                <SelectItem key={relationshipOption.value} value={relationshipOption.value}>
+                  {relationshipOption.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -126,6 +145,7 @@ export function FamilyMemberForm({
         <div className="space-y-2">
           <Label htmlFor="documentType">Tipo de documento</Label>
           <Select
+            items={documentTypeOptions}
             value={toSelectValue(documentType)}
             onValueChange={(val) => setValue('documentType', val ?? '')}
           >
@@ -133,9 +153,9 @@ export function FamilyMemberForm({
               <SelectValue placeholder="Seleccionar tipo" />
             </SelectTrigger>
             <SelectContent>
-              {DOCUMENT_TYPES.map((dt) => (
-                <SelectItem key={dt.value} value={dt.value}>
-                  {dt.label}
+              {documentTypeOptions.map((documentTypeOption) => (
+                <SelectItem key={documentTypeOption.value} value={documentTypeOption.value}>
+                  {documentTypeOption.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -159,6 +179,7 @@ export function FamilyMemberForm({
         <div className="space-y-2">
           <Label htmlFor="epsProviderId">EPS</Label>
           <Select
+            items={epsProviderOptions}
             value={toSelectValue(epsProviderId)}
             onValueChange={(val) => setValue('epsProviderId', val ?? '')}
           >
@@ -166,13 +187,11 @@ export function FamilyMemberForm({
               <SelectValue placeholder="Seleccionar EPS" />
             </SelectTrigger>
             <SelectContent>
-              {epsProviders
-                .filter((eps) => eps.isActive !== false)
-                .map((eps) => (
-                  <SelectItem key={eps.id} value={eps.id}>
-                    {eps.name}
-                  </SelectItem>
-                ))}
+              {epsProviderOptions.map((eps) => (
+                <SelectItem key={eps.value} value={eps.value}>
+                  {eps.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -180,6 +199,7 @@ export function FamilyMemberForm({
         <div className="space-y-2">
           <Label htmlFor="regime">Régimen</Label>
           <Select
+            items={regimeOptions}
             value={toSelectValue(regime)}
             onValueChange={(val) => setValue('regime', val ?? '')}
           >
@@ -187,9 +207,9 @@ export function FamilyMemberForm({
               <SelectValue placeholder="Seleccionar régimen" />
             </SelectTrigger>
             <SelectContent>
-              {REGIMES.map((r) => (
-                <SelectItem key={r.value} value={r.value}>
-                  {r.label}
+              {regimeOptions.map((regimeOption) => (
+                <SelectItem key={regimeOption.value} value={regimeOption.value}>
+                  {regimeOption.label}
                 </SelectItem>
               ))}
             </SelectContent>

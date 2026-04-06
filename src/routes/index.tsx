@@ -13,6 +13,7 @@ import { EditFamilyMemberPage } from '@/pages/family-members/EditFamilyMemberPag
 import { AuthorizationsPage } from '@/pages/authorizations/AuthorizationsPage'
 import { CreateAuthorizationPage } from '@/pages/authorizations/CreateAuthorizationPage'
 import { AuthorizationDetailPage } from '@/pages/authorizations/AuthorizationDetailPage'
+import { EditAuthorizationPage } from '@/pages/authorizations/EditAuthorizationPage'
 import { AppointmentsPage } from '@/pages/appointments/AppointmentsPage'
 import { CreateAppointmentPage } from '@/pages/appointments/CreateAppointmentPage'
 import { AppointmentDetailPage } from '@/pages/appointments/AppointmentDetailPage'
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
           { path: '/authorizations', element: <AuthorizationsPage /> },
           { path: '/authorizations/new', element: <CreateAuthorizationPage /> },
           { path: '/authorizations/:id', element: <AuthorizationDetailPage /> },
+          { path: '/authorizations/:id/edit', element: <EditAuthorizationPage /> },
           { path: '/appointments', element: <AppointmentsPage /> },
           { path: '/appointments/new', element: <CreateAppointmentPage /> },
           { path: '/appointments/:id', element: <AppointmentDetailPage /> },
