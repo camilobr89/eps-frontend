@@ -42,11 +42,15 @@ const mockMember = {
 }
 
 const mockPaginatedResponse = {
-  items: [mockMember],
-  total: 1,
-  page: 1,
-  limit: 20,
-  totalPages: 1,
+  data: [mockMember],
+  meta: {
+    total: 1,
+    page: 1,
+    limit: 20,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  },
 }
 
 function createWrapper() {

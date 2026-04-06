@@ -73,13 +73,28 @@ export function AuthorizationsPage() {
     ...(familyMemberId && { familyMemberId }),
   }
 
-  const { data, isLoading } = useAuthorizations(filters)
-  const { data: familyMembersData } = useFamilyMembers()
+  const { data: authPage, isLoading } = useAuthorizations(filters)
+  const { data: familyMembersPage } = useFamilyMembers()
   const deleteMutation = useDeleteAuthorization()
 
-  const authorizations = data?.items ?? []
-  const familyMembers = familyMembersData?.items ?? []
+  const authorizations = authPage?.data ?? []
+  const familyMembers = familyMembersPage?.data ?? []
   const hasFilters = !!(status || priority || familyMemberId)
+  const statusFilterOptions = [
+    { value: 'all', label: 'Todos los estados' },
+    ...STATUS_OPTIONS,
+  ]
+  const priorityFilterOptions = [
+    { value: 'all', label: 'Todas las prioridades' },
+    ...PRIORITY_OPTIONS,
+  ]
+  const familyMemberFilterOptions = [
+    { value: 'all', label: 'Todos los familiares' },
+    ...familyMembers.map((member) => ({
+      value: member.id,
+      label: member.fullName,
+    })),
+  ]
 
   function updateFilter(key: string, value: string | null) {
     setSearchParams((prev) => {
@@ -125,6 +140,7 @@ export function AuthorizationsPage() {
       {/* Filtros */}
       <div className="flex flex-wrap items-center gap-3">
         <Select
+          items={statusFilterOptions}
           value={status ?? 'all'}
           onValueChange={(v) => updateFilter('status', v === 'all' ? null : v)}
         >
@@ -132,16 +148,16 @@ export function AuthorizationsPage() {
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los estados</SelectItem>
-            {STATUS_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
+            {statusFilterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Select
+          items={priorityFilterOptions}
           value={priority ?? 'all'}
           onValueChange={(v) => updateFilter('priority', v === 'all' ? null : v)}
         >
@@ -149,16 +165,16 @@ export function AuthorizationsPage() {
             <SelectValue placeholder="Prioridad" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas las prioridades</SelectItem>
-            {PRIORITY_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
+            {priorityFilterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Select
+          items={familyMemberFilterOptions}
           value={familyMemberId ?? 'all'}
           onValueChange={(v) => updateFilter('familyMemberId', v === 'all' ? null : v)}
         >
@@ -166,10 +182,9 @@ export function AuthorizationsPage() {
             <SelectValue placeholder="Miembro de familia" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los familiares</SelectItem>
-            {familyMembers.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
-                {m.fullName}
+            {familyMemberFilterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>

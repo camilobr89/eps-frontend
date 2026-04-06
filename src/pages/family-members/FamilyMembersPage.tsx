@@ -14,7 +14,7 @@ import type { FamilyMember } from '@/types'
 
 export function FamilyMembersPage() {
   const navigate = useNavigate()
-  const { data, isLoading } = useFamilyMembers()
+  const { data: membersPage, isLoading } = useFamilyMembers()
   const deleteMutation = useDeleteFamilyMember()
   const [memberToDelete, setMemberToDelete] = useState<FamilyMember | null>(null)
 
@@ -34,7 +34,7 @@ export function FamilyMembersPage() {
     return <LoadingSpinner size="lg" />
   }
 
-  const members = data?.items ?? []
+  const members = membersPage?.data ?? []
 
   return (
     <div className="space-y-6 p-6">

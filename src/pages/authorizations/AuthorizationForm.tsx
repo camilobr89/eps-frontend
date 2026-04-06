@@ -52,9 +52,19 @@ export function AuthorizationForm({
   onSubmit,
   submitLabel = 'Guardar',
 }: AuthorizationFormProps) {
-  const { data: familyMembersData, isLoading: isLoadingFamilyMembers } = useFamilyMembers()
+  const { data: familyMembersPage, isLoading: isLoadingFamilyMembers } = useFamilyMembers()
   const { data: epsProviders = [] } = useEpsProviders()
-  const familyMembers = familyMembersData?.items ?? []
+  const familyMembers = familyMembersPage?.data ?? []
+  const familyMemberOptions = familyMembers.map((member) => ({
+    value: member.id,
+    label: member.fullName,
+  }))
+  const epsProviderOptions = epsProviders
+    .filter((provider) => provider.isActive !== false)
+    .map((provider) => ({
+      value: provider.id,
+      label: provider.name,
+    }))
 
   const {
     register,
@@ -118,6 +128,7 @@ export function AuthorizationForm({
             <div className="space-y-2">
               <Label htmlFor="familyMemberId">Miembro de familia *</Label>
               <Select
+                items={familyMemberOptions}
                 value={toSelectValue(familyMemberId)}
                 onValueChange={(val) =>
                   setValue('familyMemberId', val ?? '', { shouldValidate: true })
@@ -161,6 +172,7 @@ export function AuthorizationForm({
             <div className="space-y-2">
               <Label htmlFor="epsProviderId">EPS</Label>
               <Select
+                items={epsProviderOptions}
                 value={toSelectValue(epsProviderId)}
                 onValueChange={(val) => setValue('epsProviderId', val ?? '')}
               >
@@ -168,13 +180,11 @@ export function AuthorizationForm({
                   <SelectValue placeholder="Seleccionar EPS" />
                 </SelectTrigger>
                 <SelectContent>
-                  {epsProviders
-                    .filter((eps) => eps.isActive !== false)
-                    .map((eps) => (
-                      <SelectItem key={eps.id} value={eps.id}>
-                        {eps.name}
-                      </SelectItem>
-                    ))}
+                  {epsProviderOptions.map((eps) => (
+                    <SelectItem key={eps.value} value={eps.value}>
+                      {eps.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
