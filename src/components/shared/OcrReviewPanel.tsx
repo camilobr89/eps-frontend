@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { CheckCircle2, Loader2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -41,15 +41,10 @@ function getInitialValues(authorization: Authorization): ReviewValues {
   }
 }
 
-export function OcrReviewPanel({ authorization, onSaved }: OcrReviewPanelProps) {
+function OcrReviewPanelContent({ authorization, onSaved }: OcrReviewPanelProps) {
   const updateMutation = useUpdateAuthorization()
   const [editingField, setEditingField] = useState<EditableFieldKey | null>(null)
   const [values, setValues] = useState<ReviewValues>(() => getInitialValues(authorization))
-
-  useEffect(() => {
-    setValues(getInitialValues(authorization))
-    setEditingField(null)
-  }, [authorization])
 
   const visibleFields = useMemo(
     () =>
@@ -195,5 +190,15 @@ export function OcrReviewPanel({ authorization, onSaved }: OcrReviewPanelProps) 
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+export function OcrReviewPanel({ authorization, onSaved }: OcrReviewPanelProps) {
+  return (
+    <OcrReviewPanelContent
+      key={`${authorization.id}:${authorization.updatedAt}`}
+      authorization={authorization}
+      onSaved={onSaved}
+    />
   )
 }

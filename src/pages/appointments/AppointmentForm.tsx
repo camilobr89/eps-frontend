@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
@@ -53,7 +53,7 @@ export function AppointmentForm({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -73,8 +73,9 @@ export function AppointmentForm({
     },
   })
 
-  const familyMemberId = watch('familyMemberId')
-  const authorizationId = watch('authorizationId')
+  const familyMemberId = useWatch({ control, name: 'familyMemberId' })
+  const authorizationId = useWatch({ control, name: 'authorizationId' })
+  const authorizationServiceId = useWatch({ control, name: 'authorizationServiceId' })
 
   // Fetch authorizations for selected family member (only pending ones)
   const { data: authsPage } = useQuery({
@@ -207,7 +208,7 @@ export function AppointmentForm({
                     value: s.id,
                     label: `${s.serviceCode} — ${s.serviceName}`,
                   }))}
-                  value={toSelectValue(watch('authorizationServiceId'))}
+                  value={toSelectValue(authorizationServiceId)}
                   onValueChange={(val) => setValue('authorizationServiceId', val ?? '')}
                 >
                   <SelectTrigger id="authorizationServiceId" className="w-full">
