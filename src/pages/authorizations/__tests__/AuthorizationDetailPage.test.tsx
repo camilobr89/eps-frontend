@@ -243,7 +243,7 @@ describe('AuthorizationDetailPage', () => {
 
     const { rerender } = render(<AuthorizationDetailPage />, { wrapper })
 
-    expect(document.querySelector('svg.animate-spin')).not.toBeNull()
+    expect(document.querySelector('.animate-pulse')).not.toBeNull()
 
     currentResult = {
       data: mockAuthorization,

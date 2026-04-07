@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Pagination } from '@/components/shared/Pagination'
 import { QueryWrapper } from '@/components/shared/QueryWrapper'
+import { ListPageSkeleton } from '@/components/shared/ListPageSkeleton'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { useAppointments, useDeleteAppointment } from '@/hooks/useAppointments'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
@@ -211,6 +212,7 @@ export function AppointmentsPage() {
       {/* Listado */}
       <QueryWrapper
         query={appointmentsQuery}
+        loadingFallback={<ListPageSkeleton />}
         isEmpty={(apptPage) => apptPage.data.length === 0}
         emptyState={
           <EmptyState

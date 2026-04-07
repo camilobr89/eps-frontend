@@ -1,10 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { DetailPageSkeleton } from '@/components/shared/DetailPageSkeleton'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { useFamilyMember, useUpdateFamilyMember } from '@/hooks/useFamilyMembers'
 import { FamilyMemberForm } from './FamilyMemberForm'
 import type { FamilyMemberFormValues } from '@/lib/validations/family-member.validations'
@@ -34,7 +33,7 @@ export function EditFamilyMemberPage() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner size="lg" />
+    return <DetailPageSkeleton cards={1} />
   }
 
   if (!member) {
@@ -64,9 +63,10 @@ export function EditFamilyMemberPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(`/family-members/${id}`)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton
+          onClick={() => navigate(`/family-members/${id}`)}
+          label="Volver al detalle del miembro"
+        />
         <PageHeader title="Editar miembro de familia" />
       </div>
 

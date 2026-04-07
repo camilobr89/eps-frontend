@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { QueryWrapper } from '@/components/shared/QueryWrapper'
+import { ListPageSkeleton } from '@/components/shared/ListPageSkeleton'
 import { cn } from '@/lib/utils'
 import { formatRelativeTime } from '@/lib/formatters'
 import { usePagination } from '@/hooks/usePagination'
@@ -172,6 +173,7 @@ export function NotificationsPage() {
 
       <QueryWrapper
         query={notificationsQuery}
+        loadingFallback={<ListPageSkeleton showFilters={false} />}
         isEmpty={(notificationPage) => notificationPage.data.length === 0}
         emptyState={
           <Card>

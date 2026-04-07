@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, User, MapPin, Mail } from 'lucide-react'
+import { Pencil, Trash2, User, MapPin, Mail, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { DetailPageSkeleton } from '@/components/shared/DetailPageSkeleton'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { useFamilyMember, useDeleteFamilyMember } from '@/hooks/useFamilyMembers'
 
 function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
@@ -39,13 +41,22 @@ export function FamilyMemberDetailPage() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner size="lg" />
+    return <DetailPageSkeleton cards={2} />
   }
 
   if (!member) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
-        Miembro no encontrado
+      <div className="p-6">
+        <EmptyState
+          icon={<Users className="h-12 w-12" />}
+          title="Miembro no encontrado"
+          description="No fue posible encontrar este registro o ya no está disponible."
+          action={
+            <Button onClick={() => navigate('/family-members')}>
+              Volver al listado
+            </Button>
+          }
+        />
       </div>
     )
   }
@@ -53,9 +64,10 @@ export function FamilyMemberDetailPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/family-members')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton
+          onClick={() => navigate('/family-members')}
+          label="Volver a miembros de familia"
+        />
         <PageHeader
           title={member.fullName}
           action={
