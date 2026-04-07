@@ -18,6 +18,12 @@ export interface User {
   email: string
   fullName: string
   isActive: boolean
+  phone?: string | null
   emailNotifications: boolean
   createdAt: string
+}
+
+export interface UpdateUserPreferencesRequest {
+  phone?: string
+  emailNotifications: boolean
 }

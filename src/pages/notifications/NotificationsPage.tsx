@@ -13,14 +13,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Pagination } from '@/components/shared/Pagination'
+import { QueryWrapper } from '@/components/shared/QueryWrapper'
 import { cn } from '@/lib/utils'
 import { formatRelativeTime } from '@/lib/formatters'
+import { usePagination } from '@/hooks/usePagination'
 import { useMarkAllAsRead, useMarkAsRead, useNotifications } from '@/hooks/useNotifications'
 import { useNotificationsStore } from '@/stores/notifications.store'
 import type { Notification, NotificationType } from '@/types'
-
-const PAGE_SIZE = 20
 
 type FilterMode = 'all' | 'unread'
 
@@ -90,28 +90,20 @@ function getNotificationTarget(notification: Notification): string | null {
 export function NotificationsPage() {
   const navigate = useNavigate()
   const [filter, setFilter] = useState<FilterMode>('all')
-  const [pagesLoaded, setPagesLoaded] = useState(1)
+  const { page, limit, setPage, setLimit } = usePagination()
   const unreadCount = useNotificationsStore((s) => s.unreadCount)
 
   const readFilter = filter === 'unread' ? false : undefined
-  const {
-    data: notificationPage,
-    isLoading,
-    isFetching,
-    isError,
-  } = useNotifications(readFilter, {
-    page: 1,
-    limit: pagesLoaded * PAGE_SIZE,
+  const notificationsQuery = useNotifications(readFilter, {
+    page,
+    limit,
   })
   const markAsReadMutation = useMarkAsRead()
   const markAllAsReadMutation = useMarkAllAsRead()
 
-  const notifications = notificationPage?.data ?? []
-  const hasNextPage = notificationPage?.meta.hasNextPage ?? false
-
   function handleFilterChange(nextFilter: FilterMode) {
     setFilter(nextFilter)
-    setPagesLoaded(1)
+    setPage(1)
   }
 
   async function handleMarkAllAsRead() {
@@ -136,27 +128,6 @@ export function NotificationsPage() {
     } catch {
       toast.error('No fue posible actualizar la notificación')
     }
-  }
-
-  if (isLoading) {
-    return <LoadingSpinner size="lg" />
-  }
-
-  if (isError) {
-    return (
-      <div className="space-y-6 p-6">
-        <PageHeader title="Notificaciones" />
-        <Card>
-          <CardContent>
-            <EmptyState
-              icon={<Bell className="h-12 w-12" />}
-              title="No fue posible cargar las notificaciones"
-              description="Intenta recargar la página para consultar tus avisos más recientes."
-            />
-          </CardContent>
-        </Card>
-      </div>
-    )
   }
 
   return (
@@ -191,7 +162,7 @@ export function NotificationsPage() {
         >
           No leídas
         </Button>
-        {isFetching && (
+        {notificationsQuery.isFetching && (
           <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
             <RefreshCw className="h-4 w-4 animate-spin" />
             Actualizando...
@@ -199,94 +170,101 @@ export function NotificationsPage() {
         )}
       </div>
 
-      {notifications.length === 0 ? (
-        <Card>
-          <CardContent>
-            <EmptyState
-              icon={<Bell className="h-12 w-12" />}
-              title={
-                filter === 'unread'
-                  ? 'No tienes notificaciones sin leer'
-                  : 'Aún no hay notificaciones'
-              }
-              description={
-                filter === 'unread'
-                  ? 'Cuando llegue una nueva alerta aparecerá en este listado.'
-                  : 'Aquí verás vencimientos, recordatorios de citas y resultados del OCR.'
-              }
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {filter === 'unread' ? 'No leídas' : 'Todas las notificaciones'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {notifications.map((notification) => {
-              const { icon: Icon, accent } = getNotificationIcon(notification)
-              const target = getNotificationTarget(notification)
+      <QueryWrapper
+        query={notificationsQuery}
+        isEmpty={(notificationPage) => notificationPage.data.length === 0}
+        emptyState={
+          <Card>
+            <CardContent>
+              <EmptyState
+                icon={<Bell className="h-12 w-12" />}
+                title={
+                  filter === 'unread'
+                    ? 'No tienes notificaciones sin leer'
+                    : 'Aún no hay notificaciones'
+                }
+                description={
+                  filter === 'unread'
+                    ? 'Cuando llegue una nueva alerta aparecerá en este listado.'
+                    : 'Aquí verás vencimientos, recordatorios de citas y resultados del OCR.'
+                }
+              />
+            </CardContent>
+          </Card>
+        }
+        errorTitle="No fue posible cargar las notificaciones"
+      >
+        {(notificationPage) => (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {filter === 'unread' ? 'No leídas' : 'Todas las notificaciones'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {notificationPage.data.map((notification) => {
+                  const { icon: Icon, accent } = getNotificationIcon(notification)
+                  const target = getNotificationTarget(notification)
 
-              return (
-                <button
-                  key={notification.id}
-                  type="button"
-                  onClick={() => void handleNotificationClick(notification)}
-                  className={cn(
-                    'flex w-full items-start gap-4 rounded-xl border px-4 py-4 text-left transition-colors hover:bg-muted/40',
-                    notification.read
-                      ? 'border-border/70 bg-background'
-                      : 'border-primary/20 bg-primary/5',
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-                      accent,
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <p className="font-medium">{notification.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {notification.message}
-                        </p>
-                      </div>
-                      {!notification.read && (
-                        <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                  return (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      onClick={() => void handleNotificationClick(notification)}
+                      className={cn(
+                        'flex w-full items-start gap-4 rounded-xl border px-4 py-4 text-left transition-colors hover:bg-muted/40',
+                        notification.read
+                          ? 'border-border/70 bg-background'
+                          : 'border-primary/20 bg-primary/5',
                       )}
-                    </div>
+                    >
+                      <div
+                        className={cn(
+                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+                          accent,
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
 
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span>{formatRelativeTime(notification.createdAt)}</span>
-                      {target && <span>Abrir detalle</span>}
-                    </div>
-                  </div>
-                </button>
-              )
-            })}
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="font-medium">{notification.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {notification.message}
+                            </p>
+                          </div>
+                          {!notification.read && (
+                            <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                          )}
+                        </div>
 
-            {hasNextPage && (
-              <div className="pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setPagesLoaded((current) => current + 1)}
-                  disabled={isFetching}
-                >
-                  Cargar más
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                          <span>{formatRelativeTime(notification.createdAt)}</span>
+                          {target && <span>Abrir detalle</span>}
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </CardContent>
+            </Card>
+
+            <Pagination
+              page={page}
+              limit={limit}
+              total={notificationPage.meta.total}
+              totalPages={notificationPage.meta.totalPages}
+              hasNextPage={page < notificationPage.meta.totalPages}
+              hasPreviousPage={page > 1}
+              onPageChange={setPage}
+              onLimitChange={setLimit}
+            />
+          </div>
+        )}
+      </QueryWrapper>
     </div>
   )
 }

@@ -9,6 +9,7 @@ vi.mock('@/services/auth.service', () => ({
     logout: vi.fn(),
     refresh: vi.fn(),
     getProfile: vi.fn(),
+    updatePreferences: vi.fn(),
   },
 }))
 
@@ -17,6 +18,7 @@ const mockUser = {
   email: 'test@test.com',
   fullName: 'Test User',
   isActive: true,
+  phone: '+573001234567',
   emailNotifications: true,
   createdAt: '2026-01-01T00:00:00Z',
 }
@@ -203,6 +205,41 @@ describe('auth.store', () => {
       const state = useAuthStore.getState()
       expect(state.isAuthenticated).toBe(false)
       expect(state.isLoading).toBe(false)
+    })
+  })
+
+  describe('updatePreferences', () => {
+    it('should save preferences and refresh the profile', async () => {
+      useAuthStore.setState({
+        user: mockUser,
+        accessToken: 'token',
+        isAuthenticated: true,
+        isLoading: false,
+      })
+
+      vi.mocked(authService.updatePreferences).mockResolvedValue(undefined)
+      vi.mocked(authService.getProfile).mockResolvedValue({
+        ...mockUser,
+        phone: '+573204445566',
+        emailNotifications: false,
+      })
+
+      const updatedUser = await useAuthStore.getState().updatePreferences({
+        phone: '+573204445566',
+        emailNotifications: false,
+      })
+
+      expect(authService.updatePreferences).toHaveBeenCalledWith({
+        phone: '+573204445566',
+        emailNotifications: false,
+      })
+      expect(authService.getProfile).toHaveBeenCalled()
+      expect(updatedUser).toEqual({
+        ...mockUser,
+        phone: '+573204445566',
+        emailNotifications: false,
+      })
+      expect(useAuthStore.getState().user).toEqual(updatedUser)
     })
   })
 
