@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth.store'
+import { useNotificationsStore } from '@/stores/notifications.store'
 import { useUiStore } from '@/stores/ui.store'
 
 function getInitials(name: string) {
@@ -25,7 +26,9 @@ export function Header() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  const unreadCount = useNotificationsStore((s) => s.unreadCount)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
+  const unreadCountLabel = unreadCount > 99 ? '99+' : unreadCount
 
   async function handleLogout() {
     await logout()
@@ -52,8 +55,14 @@ export function Header() {
           size="icon"
           onClick={() => navigate('/notifications')}
           aria-label="Notificaciones"
+          className="relative"
         >
           <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+              {unreadCountLabel}
+            </span>
+          )}
         </Button>
 
         <DropdownMenu>

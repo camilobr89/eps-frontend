@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
+import { useNotificationsStore } from '@/stores/notifications.store'
 import { useUiStore } from '@/stores/ui.store'
 import { Separator } from '@/components/ui/separator'
 
@@ -25,7 +26,9 @@ export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const logout = useAuthStore((s) => s.logout)
+  const unreadCount = useNotificationsStore((s) => s.unreadCount)
   const closeSidebar = useUiStore((s) => s.closeSidebar)
+  const unreadCountLabel = unreadCount > 99 ? '99+' : unreadCount
 
   function isActive(path: string) {
     return location.pathname === path || location.pathname.startsWith(path + '/')
@@ -63,7 +66,12 @@ export function Sidebar() {
             )}
           >
             <Icon className="h-4 w-4" />
-            {label}
+            <span className="flex-1">{label}</span>
+            {to === '/notifications' && unreadCount > 0 && (
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+                {unreadCountLabel}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
