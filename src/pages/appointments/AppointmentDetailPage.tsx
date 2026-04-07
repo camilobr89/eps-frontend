@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import {
-  ArrowLeft,
   Pencil,
   Trash2,
   Calendar,
@@ -22,8 +21,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { DetailPageSkeleton } from '@/components/shared/DetailPageSkeleton'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import {
   useAppointment,
@@ -104,12 +105,19 @@ export function AppointmentDetailPage() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner size="lg" />
+    return <DetailPageSkeleton cards={3} />
   }
 
   if (!appt) {
     return (
-      <div className="p-6 text-center text-muted-foreground">Cita no encontrada</div>
+      <div className="p-6">
+        <EmptyState
+          icon={<Calendar className="h-12 w-12" />}
+          title="Cita no encontrada"
+          description="No fue posible encontrar esta cita o ya no está disponible."
+          action={<Button onClick={() => navigate('/appointments')}>Volver al listado</Button>}
+        />
+      </div>
     )
   }
 
@@ -117,13 +125,11 @@ export function AppointmentDetailPage() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/appointments')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton onClick={() => navigate('/appointments')} label="Volver a citas" />
         <PageHeader
           title={appt.specialty ?? 'Detalle de cita'}
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {/* Status changer */}
               <Select
                 items={STATUS_OPTIONS}

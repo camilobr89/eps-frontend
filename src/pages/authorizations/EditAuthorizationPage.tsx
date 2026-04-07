@@ -1,10 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
-import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { DetailPageSkeleton } from '@/components/shared/DetailPageSkeleton'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { useAuthorization, useUpdateAuthorization } from '@/hooks/useAuthorizations'
 import { AuthorizationForm } from './AuthorizationForm'
 import type { AuthorizationFormValues } from '@/lib/validations/authorization.validations'
@@ -42,7 +41,7 @@ export function EditAuthorizationPage() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner size="lg" />
+    return <DetailPageSkeleton cards={2} />
   }
 
   if (!auth) {
@@ -89,9 +88,10 @@ export function EditAuthorizationPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(`/authorizations/${id}`)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton
+          onClick={() => navigate(`/authorizations/${id}`)}
+          label="Volver al detalle de la autorización"
+        />
         <PageHeader title="Editar autorización" />
       </div>
 

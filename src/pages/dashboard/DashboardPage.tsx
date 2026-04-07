@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Skeleton } from '@/components/shared/Skeleton'
 import { useDashboardSummary, useDashboardTimeline } from '@/hooks/useDashboard'
 import type { TimelineEvent } from '@/types'
 
@@ -83,7 +83,50 @@ export function DashboardPage() {
   } = useDashboardTimeline()
 
   if (isLoadingSummary || isLoadingTimeline) {
-    return <LoadingSpinner size="lg" />
+    return (
+      <div className="space-y-6 p-6">
+        <PageHeader
+          title="Dashboard"
+          description="Resumen rápido del estado de autorizaciones, citas y notificaciones."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <CardContent className="space-y-4 p-4">
+                <div className="flex items-start justify-between">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <Skeleton className="h-4 w-4" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <CardTitle>
+                  <Skeleton className="h-5 w-40" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {Array.from({ length: 4 }).map((__, rowIndex) => (
+                  <div key={rowIndex} className="space-y-2 rounded-xl border border-border/70 p-4">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3.5 w-28" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   if (!summary || isSummaryError || isTimelineError) {

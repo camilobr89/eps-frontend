@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft,
   Pencil,
   Trash2,
   Calendar,
@@ -26,12 +25,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { DetailPageSkeleton } from '@/components/shared/DetailPageSkeleton'
 import { FileUpload } from '@/components/shared/FileUpload'
 import { OcrReviewPanel } from '@/components/shared/OcrReviewPanel'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { useAuthorization, useDeleteAuthorization } from '@/hooks/useAuthorizations'
 import {
   useDocumentDownloadUrl as getDocumentDownloadUrl,
@@ -255,13 +255,18 @@ export function AuthorizationDetailPage() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner size="lg" />
+    return <DetailPageSkeleton cards={3} />
   }
 
   if (!auth) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
-        Autorización no encontrada
+      <div className="p-6">
+        <EmptyState
+          icon={<FileText className="h-12 w-12" />}
+          title="Autorización no encontrada"
+          description="No fue posible encontrar este registro o ya no está disponible."
+          action={<Button onClick={() => navigate('/authorizations')}>Volver al listado</Button>}
+        />
       </div>
     )
   }
@@ -291,13 +296,14 @@ export function AuthorizationDetailPage() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/authorizations')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton
+          onClick={() => navigate('/authorizations')}
+          label="Volver a autorizaciones"
+        />
         <PageHeader
           title={auth.requestNumber ? `N° ${auth.requestNumber}` : 'Autorización'}
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 onClick={() => navigate(`/appointments/new?authorizationId=${auth.id}`)}

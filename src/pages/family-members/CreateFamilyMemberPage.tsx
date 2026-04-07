@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { useCreateFamilyMember } from '@/hooks/useFamilyMembers'
 import { FamilyMemberForm } from './FamilyMemberForm'
 import type { FamilyMemberFormValues } from '@/lib/validations/family-member.validations'
@@ -33,9 +32,10 @@ export function CreateFamilyMemberPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/family-members')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton
+          onClick={() => navigate('/family-members')}
+          label="Volver a miembros de familia"
+        />
         <PageHeader title="Agregar miembro de familia" />
       </div>
 

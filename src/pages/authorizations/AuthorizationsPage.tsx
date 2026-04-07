@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Pagination } from '@/components/shared/Pagination'
 import { QueryWrapper } from '@/components/shared/QueryWrapper'
+import { ListPageSkeleton } from '@/components/shared/ListPageSkeleton'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { useAuthorizations, useDeleteAuthorization } from '@/hooks/useAuthorizations'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
@@ -208,6 +209,7 @@ export function AuthorizationsPage() {
       {/* Listado */}
       <QueryWrapper
         query={authQuery}
+        loadingFallback={<ListPageSkeleton />}
         isEmpty={(authPage) => authPage.data.length === 0}
         emptyState={
           <EmptyState
@@ -281,11 +283,12 @@ export function AuthorizationsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          aria-label="Agendar cita"
+                          title="Agendar cita"
                           onClick={(e) => {
                             e.stopPropagation()
                             navigate(`/appointments/new?authorizationId=${auth.id}`)
                           }}
-                          title="Agendar cita"
                         >
                           <Calendar className="h-3.5 w-3.5" />
                         </Button>

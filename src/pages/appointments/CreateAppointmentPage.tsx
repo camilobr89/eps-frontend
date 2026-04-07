@@ -1,10 +1,9 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
-import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { DetailPageSkeleton } from '@/components/shared/DetailPageSkeleton'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { useCreateAppointment } from '@/hooks/useAppointments'
 import { useAuthorization } from '@/hooks/useAuthorizations'
 import { AppointmentForm } from './AppointmentForm'
@@ -52,7 +51,7 @@ export function CreateAppointmentPage() {
   }
 
   if (authorizationId && isLoadingAuth) {
-    return <LoadingSpinner size="lg" />
+    return <DetailPageSkeleton cards={1} />
   }
 
   const defaultValues = preloadedAuth
@@ -65,9 +64,7 @@ export function CreateAppointmentPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/appointments')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton onClick={() => navigate('/appointments')} label="Volver a citas" />
         <PageHeader title="Nueva cita" />
       </div>
 

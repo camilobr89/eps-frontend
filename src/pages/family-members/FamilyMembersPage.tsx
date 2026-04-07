@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Pagination } from '@/components/shared/Pagination'
 import { QueryWrapper } from '@/components/shared/QueryWrapper'
+import { ListPageSkeleton } from '@/components/shared/ListPageSkeleton'
 import { useFamilyMembers, useDeleteFamilyMember } from '@/hooks/useFamilyMembers'
 import { usePagination } from '@/hooks/usePagination'
 import type { FamilyMember } from '@/types'
@@ -47,6 +48,7 @@ export function FamilyMembersPage() {
 
       <QueryWrapper
         query={membersQuery}
+        loadingFallback={<ListPageSkeleton showFilters={false} />}
         isEmpty={(membersPage) => membersPage.data.length === 0}
         emptyState={
           <EmptyState

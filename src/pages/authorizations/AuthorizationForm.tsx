@@ -541,6 +541,8 @@ export function AuthorizationForm({
                           type="button"
                           variant="ghost"
                           size="icon"
+                          aria-label="Eliminar servicio"
+                          title="Eliminar servicio"
                           className="shrink-0 text-destructive hover:text-destructive"
                           onClick={() => remove(index)}
                         >

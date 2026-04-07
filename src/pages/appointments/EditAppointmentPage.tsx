@@ -1,10 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
-import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { DetailPageSkeleton } from '@/components/shared/DetailPageSkeleton'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { useAppointment, useUpdateAppointment } from '@/hooks/useAppointments'
 import { AppointmentForm } from './AppointmentForm'
 import type { AppointmentFormValues } from '@/lib/validations/appointment.validations'
@@ -46,7 +45,7 @@ export function EditAppointmentPage() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner size="lg" />
+    return <DetailPageSkeleton cards={1} />
   }
 
   if (!appt) {
@@ -69,9 +68,10 @@ export function EditAppointmentPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(`/appointments/${id}`)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton
+          onClick={() => navigate(`/appointments/${id}`)}
+          label="Volver al detalle de la cita"
+        />
         <PageHeader title="Editar cita" />
       </div>
 

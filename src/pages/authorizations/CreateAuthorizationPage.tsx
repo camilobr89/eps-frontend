@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 import { Button } from '@/components/ui/button'
@@ -18,6 +17,7 @@ import { useCreateAuthorization } from '@/hooks/useAuthorizations'
 import { useUploadDocumentAndCreateAuthorization } from '@/hooks/useDocuments'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
 import { FileUpload } from '@/components/shared/FileUpload'
+import { PageBackButton } from '@/components/shared/PageBackButton'
 import { AuthorizationForm } from './AuthorizationForm'
 import type { AuthorizationFormValues } from '@/lib/validations/authorization.validations'
 import type { ApiError } from '@/types'
@@ -80,9 +80,10 @@ export function CreateAuthorizationPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/authorizations')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <PageBackButton
+          onClick={() => navigate('/authorizations')}
+          label="Volver a autorizaciones"
+        />
         <PageHeader title="Nueva autorización" />
       </div>
 
