@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { LoginRequest, RegisterRequest, User } from '@/types'
+import type {
+  LoginRequest,
+  RegisterRequest,
+  UpdateUserPreferencesRequest,
+  User,
+} from '@/types'
 import { authService } from '@/services/auth.service'
 
 interface AuthState {
@@ -15,6 +20,7 @@ interface AuthState {
   refresh: () => Promise<void>
   getProfile: () => Promise<void>
   initialize: () => Promise<void>
+  updatePreferences: (dto: UpdateUserPreferencesRequest) => Promise<User | null>
 
   setAccessToken: (token: string | null) => void
   reset: () => void
@@ -62,6 +68,12 @@ export const useAuthStore = create<AuthState>()(
       getProfile: async () => {
         const user = await authService.getProfile()
         set({ user })
+      },
+
+      updatePreferences: async (dto) => {
+        await authService.updatePreferences(dto)
+        await get().getProfile()
+        return get().user
       },
 
       initialize: async () => {

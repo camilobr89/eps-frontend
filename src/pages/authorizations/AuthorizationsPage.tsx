@@ -14,11 +14,13 @@ import {
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { Pagination } from '@/components/shared/Pagination'
+import { QueryWrapper } from '@/components/shared/QueryWrapper'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { useAuthorizations, useDeleteAuthorization } from '@/hooks/useAuthorizations'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
+import { usePagination } from '@/hooks/usePagination'
 import type { Authorization, AuthorizationStatus, Priority } from '@/types'
 
 const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> = {
@@ -62,22 +64,24 @@ export function AuthorizationsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [authToDelete, setAuthToDelete] = useState<Authorization | null>(null)
+  const { page, limit, setPage, setLimit } = usePagination()
 
   const status = searchParams.get('status') as AuthorizationStatus | null
   const priority = searchParams.get('priority') as Priority | null
   const familyMemberId = searchParams.get('familyMemberId') || undefined
 
   const filters = {
+    page,
+    limit,
     ...(status && { status }),
     ...(priority && { priority }),
     ...(familyMemberId && { familyMemberId }),
   }
 
-  const { data: authPage, isLoading } = useAuthorizations(filters)
+  const authQuery = useAuthorizations(filters)
   const { data: familyMembersPage } = useFamilyMembers()
   const deleteMutation = useDeleteAuthorization()
 
-  const authorizations = authPage?.data ?? []
   const familyMembers = familyMembersPage?.data ?? []
   const hasFilters = !!(status || priority || familyMemberId)
   const statusFilterOptions = [
@@ -101,12 +105,20 @@ export function AuthorizationsPage() {
       const next = new URLSearchParams(prev)
       if (value) next.set(key, value)
       else next.delete(key)
+      next.delete('page')
       return next
     })
   }
 
   function clearFilters() {
-    setSearchParams({})
+    setSearchParams((prev) => {
+      const next = new URLSearchParams()
+      const currentLimit = prev.get('limit')
+      if (currentLimit) {
+        next.set('limit', currentLimit)
+      }
+      return next
+    })
   }
 
   async function handleDelete() {
@@ -119,10 +131,6 @@ export function AuthorizationsPage() {
     } finally {
       setAuthToDelete(null)
     }
-  }
-
-  if (isLoading) {
-    return <LoadingSpinner size="lg" />
   }
 
   return (
@@ -198,112 +206,132 @@ export function AuthorizationsPage() {
       </div>
 
       {/* Listado */}
-      {authorizations.length === 0 ? (
-        <EmptyState
-          icon={<FileText className="h-12 w-12" />}
-          title={hasFilters ? 'Sin resultados' : 'Aún no hay autorizaciones'}
-          description={
-            hasFilters
-              ? 'No hay autorizaciones que coincidan con los filtros aplicados.'
-              : 'Crea tu primera autorización para comenzar a gestionar los servicios médicos.'
-          }
-          action={
-            !hasFilters ? (
-              <Button onClick={() => navigate('/authorizations/new')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva autorización
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {authorizations.map((auth) => {
-            const priorityCfg = PRIORITY_CONFIG[auth.priority]
-            return (
-              <Card
-                key={auth.id}
-                className="cursor-pointer transition-shadow hover:shadow-md"
-                onClick={() => navigate(`/authorizations/${auth.id}`)}
-              >
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <StatusBadge status={auth.status} />
-                      {priorityCfg && (
-                        <Badge
-                          variant="outline"
-                          className={`ml-1 border-transparent text-xs font-medium ${priorityCfg.className}`}
-                        >
-                          {priorityCfg.label}
-                        </Badge>
+      <QueryWrapper
+        query={authQuery}
+        isEmpty={(authPage) => authPage.data.length === 0}
+        emptyState={
+          <EmptyState
+            icon={<FileText className="h-12 w-12" />}
+            title={hasFilters ? 'Sin resultados' : 'Aún no hay autorizaciones'}
+            description={
+              hasFilters
+                ? 'No hay autorizaciones que coincidan con los filtros aplicados.'
+                : 'Crea tu primera autorización para comenzar a gestionar los servicios médicos.'
+            }
+            action={
+              !hasFilters ? (
+                <Button onClick={() => navigate('/authorizations/new')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva autorización
+                </Button>
+              ) : undefined
+            }
+          />
+        }
+        errorTitle="No fue posible cargar las autorizaciones"
+      >
+        {(authPage) => (
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {authPage.data.map((auth) => {
+                const priorityCfg = PRIORITY_CONFIG[auth.priority]
+                return (
+                  <Card
+                    key={auth.id}
+                    className="cursor-pointer transition-shadow hover:shadow-md"
+                    onClick={() => navigate(`/authorizations/${auth.id}`)}
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <StatusBadge status={auth.status} />
+                          {priorityCfg && (
+                            <Badge
+                              variant="outline"
+                              className={`ml-1 border-transparent text-xs font-medium ${priorityCfg.className}`}
+                            >
+                              {priorityCfg.label}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {auth.services.length} servicio{auth.services.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 space-y-1 text-sm">
+                        {auth.familyMember && (
+                          <p className="font-medium">{auth.familyMember.fullName}</p>
+                        )}
+                        <p className="text-muted-foreground">{auth.documentType}</p>
+                        {auth.requestNumber && (
+                          <p className="text-xs text-muted-foreground">
+                            N° {auth.requestNumber}
+                          </p>
+                        )}
+                      </div>
+
+                      {auth.expirationDate && (
+                        <p className={`mt-2 text-xs ${getExpirationClass(auth.expirationDate)}`}>
+                          Vence: {formatDate(auth.expirationDate)}
+                        </p>
                       )}
-                    </div>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {auth.services.length} servicio{auth.services.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
 
-                  <div className="mt-3 space-y-1 text-sm">
-                    {auth.familyMember && (
-                      <p className="font-medium">{auth.familyMember.fullName}</p>
-                    )}
-                    <p className="text-muted-foreground">{auth.documentType}</p>
-                    {auth.requestNumber && (
-                      <p className="text-xs text-muted-foreground">
-                        N° {auth.requestNumber}
-                      </p>
-                    )}
-                  </div>
+                      <div className="mt-4 flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/appointments/new?authorizationId=${auth.id}`)
+                          }}
+                          title="Agendar cita"
+                        >
+                          <Calendar className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/authorizations/${auth.id}/edit`)
+                          }}
+                        >
+                          <Pencil className="mr-1 h-3.5 w-3.5" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setAuthToDelete(auth)
+                          }}
+                        >
+                          <Trash2 className="mr-1 h-3.5 w-3.5" />
+                          Eliminar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
 
-                  {auth.expirationDate && (
-                    <p className={`mt-2 text-xs ${getExpirationClass(auth.expirationDate)}`}>
-                      Vence: {formatDate(auth.expirationDate)}
-                    </p>
-                  )}
-
-                  <div className="mt-4 flex justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(`/appointments/new?authorizationId=${auth.id}`)
-                      }}
-                      title="Agendar cita"
-                    >
-                      <Calendar className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(`/authorizations/${auth.id}/edit`)
-                      }}
-                    >
-                      <Pencil className="mr-1 h-3.5 w-3.5" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setAuthToDelete(auth)
-                      }}
-                    >
-                      <Trash2 className="mr-1 h-3.5 w-3.5" />
-                      Eliminar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      )}
+            <Pagination
+              page={page}
+              limit={limit}
+              total={authPage.meta.total}
+              totalPages={authPage.meta.totalPages}
+              hasNextPage={page < authPage.meta.totalPages}
+              hasPreviousPage={page > 1}
+              onPageChange={setPage}
+              onLimitChange={setLimit}
+            />
+          </div>
+        )}
+      </QueryWrapper>
 
       <ConfirmDialog
         open={!!authToDelete}

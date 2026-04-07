@@ -14,11 +14,13 @@ import {
 } from '@/components/ui/select'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { Pagination } from '@/components/shared/Pagination'
+import { QueryWrapper } from '@/components/shared/QueryWrapper'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { useAppointments, useDeleteAppointment } from '@/hooks/useAppointments'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
+import { usePagination } from '@/hooks/usePagination'
 import type { Appointment, AppointmentStatus } from '@/types'
 
 const STATUS_OPTIONS: { value: AppointmentStatus; label: string }[] = [
@@ -65,6 +67,7 @@ export function AppointmentsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [apptToDelete, setApptToDelete] = useState<Appointment | null>(null)
+  const { page, limit, setPage, setLimit } = usePagination()
 
   const status = searchParams.get('status') as AppointmentStatus | null
   const familyMemberId = searchParams.get('familyMemberId') || undefined
@@ -72,17 +75,18 @@ export function AppointmentsPage() {
   const dateTo = searchParams.get('dateTo') || undefined
 
   const filters = {
+    page,
+    limit,
     ...(status && { status }),
     ...(familyMemberId && { familyMemberId }),
     ...(dateFrom && { dateFrom }),
     ...(dateTo && { dateTo }),
   }
 
-  const { data: apptPage, isLoading } = useAppointments(filters)
+  const appointmentsQuery = useAppointments(filters)
   const { data: familyMembersPage } = useFamilyMembers()
   const deleteMutation = useDeleteAppointment()
 
-  const appointments = apptPage?.data ?? []
   const familyMembers = familyMembersPage?.data ?? []
   const hasFilters = !!(status || familyMemberId || dateFrom || dateTo)
 
@@ -100,12 +104,20 @@ export function AppointmentsPage() {
       const next = new URLSearchParams(prev)
       if (value) next.set(key, value)
       else next.delete(key)
+      next.delete('page')
       return next
     })
   }
 
   function clearFilters() {
-    setSearchParams({})
+    setSearchParams((prev) => {
+      const next = new URLSearchParams()
+      const currentLimit = prev.get('limit')
+      if (currentLimit) {
+        next.set('limit', currentLimit)
+      }
+      return next
+    })
   }
 
   async function handleDelete() {
@@ -119,12 +131,6 @@ export function AppointmentsPage() {
       setApptToDelete(null)
     }
   }
-
-  if (isLoading) {
-    return <LoadingSpinner size="lg" />
-  }
-
-  const grouped = groupByDay(appointments)
 
   return (
     <div className="space-y-6 p-6">
@@ -203,103 +209,127 @@ export function AppointmentsPage() {
       </div>
 
       {/* Listado */}
-      {appointments.length === 0 ? (
-        <EmptyState
-          icon={<Calendar className="h-12 w-12" />}
-          title={hasFilters ? 'Sin resultados' : 'Aún no hay citas'}
-          description={
-            hasFilters
-              ? 'No hay citas que coincidan con los filtros aplicados.'
-              : 'Crea tu primera cita para comenzar a gestionar tus consultas médicas.'
-          }
-          action={
-            !hasFilters ? (
-              <Button onClick={() => navigate('/appointments/new')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva cita
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="space-y-8">
-          {[...grouped.entries()].map(([dateKey, dayAppts]) => (
-            <div key={dateKey}>
-              <h2 className="mb-3 text-sm font-semibold capitalize text-muted-foreground">
-                {formatDayHeader(dateKey)}
-              </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {dayAppts.map((appt) => (
-                  <Card
-                    key={appt.id}
-                    className="cursor-pointer transition-shadow hover:shadow-md"
-                    onClick={() => navigate(`/appointments/${appt.id}`)}
-                  >
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="space-y-1">
-                          <p className="text-lg font-semibold tabular-nums">
-                            {formatTime(appt.appointmentDate)}
-                          </p>
-                          {appt.familyMember && (
-                            <p className="text-sm font-medium">{appt.familyMember.fullName}</p>
-                          )}
-                        </div>
-                        <StatusBadge status={appt.status} />
-                      </div>
+      <QueryWrapper
+        query={appointmentsQuery}
+        isEmpty={(apptPage) => apptPage.data.length === 0}
+        emptyState={
+          <EmptyState
+            icon={<Calendar className="h-12 w-12" />}
+            title={hasFilters ? 'Sin resultados' : 'Aún no hay citas'}
+            description={
+              hasFilters
+                ? 'No hay citas que coincidan con los filtros aplicados.'
+                : 'Crea tu primera cita para comenzar a gestionar tus consultas médicas.'
+            }
+            action={
+              !hasFilters ? (
+                <Button onClick={() => navigate('/appointments/new')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva cita
+                </Button>
+              ) : undefined
+            }
+          />
+        }
+        errorTitle="No fue posible cargar las citas"
+      >
+        {(apptPage) => {
+          const grouped = groupByDay(apptPage.data)
 
-                      <div className="mt-3 space-y-0.5 text-sm text-muted-foreground">
-                        {appt.specialty && <p>{appt.specialty}</p>}
-                        {appt.doctorName && <p>{appt.doctorName}</p>}
-                        {appt.location && <p>{appt.location}</p>}
-                      </div>
-
-                      {appt.authorizationId && (
-                        <div className="mt-3">
-                          <Link
-                            to={`/authorizations/${appt.authorizationId}`}
-                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline dark:text-blue-400"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Ver autorización
-                          </Link>
-                        </div>
-                      )}
-
-                      <div className="mt-4 flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigate(`/appointments/${appt.id}/edit`)
-                          }}
+          return (
+            <div className="space-y-6">
+              <div className="space-y-8">
+                {[...grouped.entries()].map(([dateKey, dayAppts]) => (
+                  <div key={dateKey}>
+                    <h2 className="mb-3 text-sm font-semibold capitalize text-muted-foreground">
+                      {formatDayHeader(dateKey)}
+                    </h2>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {dayAppts.map((appt) => (
+                        <Card
+                          key={appt.id}
+                          className="cursor-pointer transition-shadow hover:shadow-md"
+                          onClick={() => navigate(`/appointments/${appt.id}`)}
                         >
-                          <Pencil className="mr-1 h-3.5 w-3.5" />
-                          Editar
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setApptToDelete(appt)
-                          }}
-                        >
-                          <Trash2 className="mr-1 h-3.5 w-3.5" />
-                          Eliminar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="space-y-1">
+                                <p className="text-lg font-semibold tabular-nums">
+                                  {formatTime(appt.appointmentDate)}
+                                </p>
+                                {appt.familyMember && (
+                                  <p className="text-sm font-medium">{appt.familyMember.fullName}</p>
+                                )}
+                              </div>
+                              <StatusBadge status={appt.status} />
+                            </div>
+
+                            <div className="mt-3 space-y-0.5 text-sm text-muted-foreground">
+                              {appt.specialty && <p>{appt.specialty}</p>}
+                              {appt.doctorName && <p>{appt.doctorName}</p>}
+                              {appt.location && <p>{appt.location}</p>}
+                            </div>
+
+                            {appt.authorizationId && (
+                              <div className="mt-3">
+                                <Link
+                                  to={`/authorizations/${appt.authorizationId}`}
+                                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Ver autorización
+                                </Link>
+                              </div>
+                            )}
+
+                            <div className="mt-4 flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  navigate(`/appointments/${appt.id}/edit`)
+                                }}
+                              >
+                                <Pencil className="mr-1 h-3.5 w-3.5" />
+                                Editar
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setApptToDelete(appt)
+                                }}
+                              >
+                                <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                Eliminar
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
+
+              <Pagination
+                page={page}
+                limit={limit}
+                total={apptPage.meta.total}
+                totalPages={apptPage.meta.totalPages}
+                hasNextPage={page < apptPage.meta.totalPages}
+                hasPreviousPage={page > 1}
+                onPageChange={setPage}
+                onLimitChange={setLimit}
+              />
             </div>
-          ))}
-        </div>
-      )}
+          )
+        }}
+      </QueryWrapper>
 
       <ConfirmDialog
         open={!!apptToDelete}

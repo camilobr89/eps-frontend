@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { NotificationsPage } from '../NotificationsPage'
 import {
   useMarkAllAsRead,
@@ -66,6 +67,14 @@ function mockPage(items: Notification[], hasNextPage = false): PaginatedResponse
 }
 
 describe('NotificationsPage', () => {
+  function renderPage(initialEntry = '/notifications') {
+    return render(
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <NotificationsPage />
+      </MemoryRouter>,
+    )
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
     useNotificationsStore.setState({ unreadCount: 1, pollingIntervalId: null })
@@ -92,7 +101,7 @@ describe('NotificationsPage', () => {
     const user = userEvent.setup()
     mockMarkAsRead.mockResolvedValue(undefined)
 
-    render(<NotificationsPage />)
+    renderPage()
 
     expect(screen.getByRole('heading', { name: 'Notificaciones' })).toBeInTheDocument()
     expect(screen.getByText('OCR completado')).toBeInTheDocument()
@@ -108,7 +117,7 @@ describe('NotificationsPage', () => {
     const user = userEvent.setup()
     mockMarkAllAsRead.mockResolvedValue(undefined)
 
-    render(<NotificationsPage />)
+    renderPage()
 
     await user.click(screen.getByRole('button', { name: 'No leídas' }))
     expect(useNotifications).toHaveBeenLastCalledWith(false, { page: 1, limit: 20 })
@@ -116,7 +125,9 @@ describe('NotificationsPage', () => {
     await user.click(screen.getByRole('button', { name: /marcar todas como leídas/i }))
     expect(mockMarkAllAsRead).toHaveBeenCalled()
 
-    await user.click(screen.getByRole('button', { name: 'Cargar más' }))
-    expect(useNotifications).toHaveBeenLastCalledWith(false, { page: 1, limit: 40 })
+    await user.selectOptions(screen.getByLabelText('Por página'), '50')
+    await waitFor(() => {
+      expect(useNotifications).toHaveBeenLastCalledWith(false, { page: 1, limit: 50 })
+    })
   })
 })

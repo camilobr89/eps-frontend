@@ -190,7 +190,7 @@ describe('AppointmentForm', () => {
     const familyMemberSelect = within(familyMemberField!).getByRole('combobox')
 
     await user.click(familyMemberSelect)
-    await user.click(screen.getByRole('option', { name: 'Maria Gomez' }))
+    await user.click(await screen.findByText('Maria Gomez'))
 
     await waitFor(() => {
       expect(authorizationsService.getAll).toHaveBeenCalledWith({

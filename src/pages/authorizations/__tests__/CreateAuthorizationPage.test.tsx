@@ -77,7 +77,7 @@ describe('CreateAuthorizationPage', () => {
     expect(familyMemberField).not.toBeNull()
 
     await user.click(screen.getByRole('combobox'))
-    await user.click(screen.getByRole('option', { name: 'Juan Perez' }))
+    await user.click(await screen.findByText('Juan Perez'))
 
     const input = document.querySelector('input[type="file"]') as HTMLInputElement
     const file = new File(['pdf'], 'autorizacion.pdf', { type: 'application/pdf' })
