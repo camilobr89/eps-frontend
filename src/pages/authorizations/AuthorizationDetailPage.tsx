@@ -221,6 +221,7 @@ export function AuthorizationDetailPage() {
   const uploadMutation = useUploadDocument()
   const [showDelete, setShowDelete] = useState(false)
   const [ocrExpanded, setOcrExpanded] = useState(false)
+  const [ocrSectionExpanded, setOcrSectionExpanded] = useState(false)
   const [showUploader, setShowUploader] = useState(false)
   const [uploadedDocuments, setUploadedDocuments] = useState<AuthorizationDocument[]>([])
 
@@ -523,9 +524,16 @@ export function AuthorizationDetailPage() {
       {/* OCR */}
       {hasOcrInfo && (
         <Card>
-          <CardHeader>
+          <CardHeader className="cursor-pointer" onClick={() => setOcrSectionExpanded((v) => !v)}>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Metadatos OCR</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">
+                {ocrSectionExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+                Información OCR
+              </CardTitle>
               {auth.manuallyReviewed && (
                 <Badge variant="outline" className="bg-green-100 text-green-800 border-transparent">
                   Revisada manualmente
@@ -533,41 +541,45 @@ export function AuthorizationDetailPage() {
               )}
             </div>
           </CardHeader>
-          <CardContent>
-            <dl className="grid gap-3 sm:grid-cols-2">
-              <DetailRow label="Parser usado" value={auth.ocrParserUsed} />
-              <DetailRow
-                label="Confianza OCR"
-                value={auth.ocrConfidence != null ? `${auth.ocrConfidence}%` : null}
-              />
-            </dl>
-            {auth.ocrRawText && (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                  onClick={() => setOcrExpanded((v) => !v)}
-                >
-                  {ocrExpanded ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                  {ocrExpanded ? 'Ocultar' : 'Ver'} texto OCR
-                </button>
-                {ocrExpanded && (
-                  <pre className="mt-2 max-h-48 overflow-auto rounded-md bg-muted p-3 text-xs">
-                    {auth.ocrRawText}
-                  </pre>
+          {ocrSectionExpanded && (
+            <CardContent className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium">Metadatos OCR</h3>
+                </div>
+                <dl className="grid gap-3 sm:grid-cols-2">
+                  <DetailRow label="Parser usado" value={auth.ocrParserUsed} />
+                  <DetailRow
+                    label="Confianza OCR"
+                    value={auth.ocrConfidence != null ? `${auth.ocrConfidence}%` : null}
+                  />
+                </dl>
+                {auth.ocrRawText && (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                      onClick={() => setOcrExpanded((v) => !v)}
+                    >
+                      {ocrExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                      {ocrExpanded ? 'Ocultar' : 'Ver'} texto OCR
+                    </button>
+                    {ocrExpanded && (
+                      <pre className="mt-2 max-h-48 overflow-auto rounded-md bg-muted p-3 text-xs">
+                        {auth.ocrRawText}
+                      </pre>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </CardContent>
+              <OcrReviewPanel authorization={auth} />
+            </CardContent>
+          )}
         </Card>
-      )}
-
-      {hasOcrInfo && (
-        <OcrReviewPanel authorization={auth} />
       )}
 
       <Separator />
