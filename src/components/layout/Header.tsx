@@ -58,11 +58,11 @@ export function Header() {
           className="relative"
         >
           <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
-              {unreadCountLabel}
-            </span>
-          )}
+           {unreadCount > 0 && (
+             <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-semibold text-red-800">
+               {unreadCountLabel}
+             </span>
+           )}
         </Button>
 
         <DropdownMenu>

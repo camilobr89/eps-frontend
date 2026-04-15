@@ -67,11 +67,11 @@ export function Sidebar() {
           >
             <Icon className="h-4 w-4" />
             <span className="flex-1">{label}</span>
-            {to === '/notifications' && unreadCount > 0 && (
-              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
-                {unreadCountLabel}
-              </span>
-            )}
+             {to === '/notifications' && unreadCount > 0 && (
+               <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-semibold text-red-800">
+                 {unreadCountLabel}
+               </span>
+             )}
           </Link>
         ))}
       </nav>
