@@ -68,6 +68,7 @@ export function useMarkAsRead() {
 
       const previousQueries = getNotificationsQueries(queryClient)
       const previousUnreadCount = useNotificationsStore.getState().unreadCount
+      useNotificationsStore.getState().recordMutation(previousUnreadCount)
       const wasUnread = previousQueries.some(([, page]) =>
         page?.data.some((notification) => notification.id === id && !notification.read),
       )
@@ -146,6 +147,7 @@ export function useMarkAllAsRead() {
 
       const previousQueries = getNotificationsQueries(queryClient)
       const previousUnreadCount = useNotificationsStore.getState().unreadCount
+      useNotificationsStore.getState().recordMutation(previousUnreadCount)
 
       updateNotificationQueries(queryClient, (current, params) => {
         if (params?.read === false) {

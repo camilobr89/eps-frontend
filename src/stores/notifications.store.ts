@@ -4,20 +4,48 @@ import { notificationsService } from '@/services/notifications.service'
 interface NotificationsState {
   unreadCount: number
   pollingIntervalId: number | null
+  lastMutationTime: number | null
+  previousUnreadCount: number | null
   fetchUnreadCount: () => Promise<number>
   startPolling: () => void
   stopPolling: () => void
+  recordMutation: (previousUnreadCount: number) => void
 }
 
 export const useNotificationsStore = create<NotificationsState>()((set, get) => ({
   unreadCount: 0,
   pollingIntervalId: null,
+  lastMutationTime: null,
+  previousUnreadCount: null,
+  recordMutation: (previousUnreadCount) => {
+    set({ previousUnreadCount, lastMutationTime: Date.now() })
+  },
 
   fetchUnreadCount: async () => {
-    const response = await notificationsService.getAll({ read: false, page: 1, limit: 1 })
-    const unreadCount = response.meta.total
-    set({ unreadCount })
-    return unreadCount
+    try {
+      const response = await notificationsService.getAll({ read: false, page: 1, limit: 1 })
+      const newTotal = response.meta.total
+      const current = get().unreadCount
+      const { lastMutationTime, previousUnreadCount } = get()
+      const now = Date.now()
+      console.debug('fetchUnreadCount:', { current, newTotal, lastMutationTime, previousUnreadCount })
+      
+      let shouldUpdate = true
+      if (lastMutationTime !== null && previousUnreadCount !== null && (now - lastMutationTime < 10000)) {
+        if (newTotal >= previousUnreadCount) {
+          shouldUpdate = false
+          console.debug('Ignoring update because mutation recently and backend seems unchanged')
+        }
+      }
+      
+      if (shouldUpdate) {
+        set({ unreadCount: newTotal, lastMutationTime: null, previousUnreadCount: null })
+      }
+      return newTotal
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error)
+      throw error
+    }
   },
 
   startPolling: () => {
