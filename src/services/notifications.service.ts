@@ -66,15 +66,18 @@ export const notificationsService = {
       '/notifications',
       { params },
     )
+    console.debug('notificationsService.getAll', { params, response: response.data })
     return normalizePaginatedResponse(response.data)
   },
 
   async markAsRead(id: string): Promise<Notification> {
     const response = await api.put<Notification>(`/notifications/${id}/read`)
+    console.debug('notificationsService.markAsRead', { id, response: response.data })
     return normalizeNotification(response.data)
   },
 
   async markAllAsRead(): Promise<void> {
+    console.debug('notificationsService.markAllAsRead')
     await api.put('/notifications/read-all')
   },
 }
