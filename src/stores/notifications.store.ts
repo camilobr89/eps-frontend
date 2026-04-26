@@ -32,9 +32,11 @@ export const useNotificationsStore = create<NotificationsState>()((set, get) => 
       
       let shouldUpdate = true
       if (lastMutationTime !== null && previousUnreadCount !== null && (now - lastMutationTime < 10000)) {
-        if (newTotal >= previousUnreadCount) {
+        if (newTotal === previousUnreadCount) {
           shouldUpdate = false
-          console.debug('Ignoring update because mutation recently and backend seems unchanged')
+          console.debug('Ignoring update because mutation recently and total unchanged (backend likely not processed)')
+        } else {
+          console.debug('Allowing update because total changed:', { diff: newTotal - previousUnreadCount })
         }
       }
       
