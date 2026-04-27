@@ -20,6 +20,13 @@ vi.mock('@/hooks/useDashboard', () => ({
   useDashboardTimeline: vi.fn(),
 }))
 
+vi.mock('@/hooks/useNotifications', () => ({
+  useSendReminders: vi.fn(() => ({
+    mutateAsync: vi.fn().mockResolvedValue(undefined),
+    isPending: false,
+  })),
+}))
+
 const mockSummary = {
   totalAuthorizations: 5,
   pendingAuthorizations: 2,

@@ -6,6 +6,7 @@ import {
   useMarkAllAsRead,
   useMarkAsRead,
   useNotifications,
+  useSendReminders,
 } from '../useNotifications'
 import { notificationsService } from '@/services/notifications.service'
 import { useNotificationsStore } from '@/stores/notifications.store'
@@ -16,6 +17,7 @@ vi.mock('@/services/notifications.service', () => ({
     getAll: vi.fn(),
     markAsRead: vi.fn(),
     markAllAsRead: vi.fn(),
+    sendReminders: vi.fn(),
   },
 }))
 
@@ -147,5 +149,96 @@ describe('useNotifications', () => {
     expect(updatedAllPage?.data[0]?.read).toBe(true)
     expect(updatedUnreadPage?.data).toEqual([])
     expect(useNotificationsStore.getState().unreadCount).toBe(0)
+  })
+
+  it('sends reminders and invalidates caches', async () => {
+    vi.mocked(notificationsService.sendReminders).mockResolvedValue(undefined)
+    vi.mocked(notificationsService.getAll).mockResolvedValue(createPage([]))
+
+    const { queryClient, wrapper } = createWrapper()
+
+    queryClient.setQueryData(
+      ['notifications', { page: 1, limit: 20, read: false }],
+      createPage([notification]),
+    )
+
+    const { result } = renderHook(() => useSendReminders(), { wrapper })
+
+    await act(async () => {
+      await result.current.mutateAsync()
+    })
+
+    expect(notificationsService.sendReminders).toHaveBeenCalled()
+    expect(notificationsService.getAll).toHaveBeenCalledWith({
+      read: false,
+      page: 1,
+      limit: 1,
+    })
+  })
+
+  it('reverts optimistic updates when markAsRead fails', async () => {
+    const error = new Error('Network error')
+    vi.mocked(notificationsService.markAsRead).mockRejectedValue(error)
+    vi.mocked(notificationsService.getAll).mockResolvedValue(createPage([notification]))
+
+    const { queryClient, wrapper } = createWrapper()
+    const allKey = ['notifications', { page: 1, limit: 20, read: undefined }]
+    const unreadKey = ['notifications', { page: 1, limit: 20, read: false }]
+
+    queryClient.setQueryData(allKey, createPage([notification]))
+    queryClient.setQueryData(unreadKey, createPage([notification]))
+    useNotificationsStore.setState({ unreadCount: 1 })
+
+    const { result } = renderHook(() => useMarkAsRead(), { wrapper })
+
+    await act(async () => {
+      await expect(result.current.mutateAsync(notification.id)).rejects.toThrow('Network error')
+    })
+
+    const revertedAllPage = queryClient.getQueryData<PaginatedResponse<Notification>>(allKey)
+    const revertedUnreadPage = queryClient.getQueryData<PaginatedResponse<Notification>>(unreadKey)
+
+    expect(revertedAllPage?.data[0]?.read).toBe(false)
+    expect(revertedUnreadPage?.data).toEqual([notification])
+    expect(useNotificationsStore.getState().unreadCount).toBe(1)
+  })
+
+  it('reverts optimistic updates when markAllAsRead fails', async () => {
+    const error = new Error('Network error')
+    vi.mocked(notificationsService.markAllAsRead).mockRejectedValue(error)
+    const unreadPage = createPage([notification, { ...notification, id: 'notif-2' }, { ...notification, id: 'notif-3' }])
+    vi.mocked(notificationsService.getAll).mockResolvedValue(unreadPage)
+
+    const { queryClient, wrapper } = createWrapper()
+    const allKey = ['notifications', { page: 1, limit: 20, read: undefined }]
+    const unreadKey = ['notifications', { page: 1, limit: 20, read: false }]
+
+    queryClient.setQueryData(allKey, createPage([notification]))
+    queryClient.setQueryData(unreadKey, createPage([notification]))
+    useNotificationsStore.setState({ unreadCount: 3 })
+
+    const { result } = renderHook(() => useMarkAllAsRead(), { wrapper })
+
+    await act(async () => {
+      await expect(result.current.mutateAsync()).rejects.toThrow('Network error')
+    })
+
+    const revertedAllPage = queryClient.getQueryData<PaginatedResponse<Notification>>(allKey)
+    const revertedUnreadPage = queryClient.getQueryData<PaginatedResponse<Notification>>(unreadKey)
+
+    expect(revertedAllPage?.data[0]?.read).toBe(false)
+    expect(revertedUnreadPage?.data).toEqual([notification])
+    expect(useNotificationsStore.getState().unreadCount).toBe(3)
+  })
+
+  it('uses read undefined when readFilter is not provided', async () => {
+    vi.mocked(notificationsService.getAll).mockResolvedValue(createPage([]))
+
+    const { wrapper } = createWrapper()
+    renderHook(() => useNotifications(), { wrapper })
+
+    await waitFor(() => {
+      expect(notificationsService.getAll).toHaveBeenCalledWith({})
+    })
   })
 })
