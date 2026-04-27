@@ -261,8 +261,8 @@ export function AppointmentDetailPage() {
       )}
 
       {/* Servicio específico */}
-      {appt.authorizationServiceId && appt.authorization && (() => {
-        const svc = appt.authorization.services.find(
+      {appt.authorizationServiceId && appt.authorization?.services && (() => {
+        const svc = appt.authorization!.services.find(
           (s) => s.id === appt.authorizationServiceId,
         )
         if (!svc) return null
