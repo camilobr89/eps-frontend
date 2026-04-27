@@ -137,6 +137,19 @@ export function useMarkAsRead() {
   })
 }
 
+export function useSendReminders() {
+  const queryClient = useQueryClient()
+
+  return useMutation<void, Error, void>({
+    mutationFn: () => notificationsService.sendReminders(),
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_KEY] })
+      await queryClient.invalidateQueries({ queryKey: [DASHBOARD_SUMMARY_KEY] })
+      await useNotificationsStore.getState().fetchUnreadCount().catch(() => undefined)
+    },
+  })
+}
+
 export function useMarkAllAsRead() {
   const queryClient = useQueryClient()
 
