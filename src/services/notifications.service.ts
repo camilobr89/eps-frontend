@@ -80,4 +80,14 @@ export const notificationsService = {
     console.debug('notificationsService.markAllAsRead')
     await api.put('/notifications/read-all')
   },
+
+  async sendReminders(): Promise<void> {
+    console.debug('notificationsService.sendReminders')
+    await api.post('/notifications/send-reminders')
+  },
+
+  async sendRemindersAll(): Promise<void> {
+    console.debug('notificationsService.sendRemindersAll')
+    await api.post('/notifications/send-reminders/all')
+  },
 }

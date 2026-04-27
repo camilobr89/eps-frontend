@@ -6,12 +6,14 @@ import {
   FileText,
   TimerReset,
 } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Skeleton } from '@/components/shared/Skeleton'
 import { useDashboardSummary, useDashboardTimeline } from '@/hooks/useDashboard'
+import { useSendReminders } from '@/hooks/useNotifications'
 import type { TimelineEvent } from '@/types'
 
 const SUMMARY_CARD_STYLES = {
@@ -81,6 +83,14 @@ export function DashboardPage() {
     isLoading: isLoadingTimeline,
     isError: isTimelineError,
   } = useDashboardTimeline()
+  const sendReminders = useSendReminders()
+  const hasSentReminders = useRef(false)
+
+  useEffect(() => {
+    if (hasSentReminders.current) return
+    hasSentReminders.current = true
+    void sendReminders.mutateAsync().catch(() => undefined)
+  }, [sendReminders])
 
   if (isLoadingSummary || isLoadingTimeline) {
     return (
